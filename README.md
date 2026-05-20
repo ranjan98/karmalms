@@ -1,10 +1,6 @@
 <div align="center">
 
-# KarmaLMS
-
-**The open-source LMS built for corporate training — not classrooms.**
-
-AWS-native · AI-native · self-hosted · yours to customize.
+<img src="docs/assets/banner.svg" alt="KarmaLMS — the open-source LMS built for corporate training" width="760" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -14,7 +10,9 @@ AWS-native · AI-native · self-hosted · yours to customize.
 
 </div>
 
-> _Replace this line with a demo GIF once the dashboard exists — a working demo converts visitors better than any feature list._
+<div align="center">
+  <img src="docs/assets/hero-dashboard.svg" alt="KarmaLMS dashboard — onboarding program with course progress and compliance tracking" width="820" />
+</div>
 
 ---
 

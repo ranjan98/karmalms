@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"
+     font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"
+     role="img" aria-label="KarmaLMS dashboard preview">
+  <defs>
+    <clipPath id="win"><rect x="1" y="1" width="798" height="498" rx="14"/></clipPath>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="1" y="1" width="798" height="498" rx="14" fill="#16171f"/>
+
+  <g clip-path="url(#win)">
+    <!-- browser chrome -->
+    <rect x="1" y="1" width="798" height="41" fill="#1c1d27"/>
+    <circle cx="26" cy="21" r="5" fill="#f87171"/>
+    <circle cx="46" cy="21" r="5" fill="#fbbf24"/>
+    <circle cx="66" cy="21" r="5" fill="#34d399"/>
+    <rect x="98" y="12" width="372" height="18" rx="9" fill="#0e0f15"/>
+    <text x="114" y="25" fill="#6b6c78" font-size="11">app.karmalms.io / engineering-onboarding</text>
+
+    <!-- sidebar -->
+    <rect x="1" y="42" width="168" height="457" fill="#101119"/>
+    <line x1="169" y1="42" x2="169" y2="499" stroke="#20212b"/>
+    <rect x="20" y="56" width="28" height="28" rx="7" fill="url(#brand)"/>
+    <path d="M27 75 l5 -6 l4 3 l5 -8" fill="none" stroke="#fff" stroke-width="2.1"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="56" y="75" fill="#e9e9ee" font-size="13.5" font-weight="700">KarmaLMS</text>
+
+    <rect x="14" y="106" width="140" height="32" rx="8" fill="#4f46e5" fill-opacity="0.16"/>
+    <rect x="14" y="106" width="3" height="32" rx="1.5" fill="#7c6cf6"/>
+    <rect x="28" y="116" width="13" height="13" rx="3.5" fill="#7c6cf6"/>
+    <text x="52" y="126" fill="#d4d4de" font-size="12" font-weight="600">Dashboard</text>
+
+    <rect x="28" y="158" width="13" height="13" rx="3.5" fill="#33343f"/>
+    <text x="52" y="168" fill="#7d7e8a" font-size="12">Courses</text>
+    <rect x="28" y="196" width="13" height="13" rx="3.5" fill="#33343f"/>
+    <text x="52" y="206" fill="#7d7e8a" font-size="12">People</text>
+    <rect x="28" y="234" width="13" height="13" rx="3.5" fill="#33343f"/>
+    <text x="52" y="244" fill="#7d7e8a" font-size="12">Certifications</text>
+    <rect x="28" y="272" width="13" height="13" rx="3.5" fill="#33343f"/>
+    <text x="52" y="282" fill="#7d7e8a" font-size="12">Reports</text>
+
+    <!-- header -->
+    <text x="196" y="76" fill="#e9e9ee" font-size="17" font-weight="700">Engineering Onboarding</text>
+    <text x="196" y="95" fill="#7d7e8a" font-size="11.5">12 people enrolled &#183; 4 courses &#183; updated today</text>
+
+    <!-- AI button -->
+    <rect x="622" y="60" width="150" height="29" rx="14.5" fill="url(#brand)"/>
+    <path d="M641 74 l2 -5 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 z" fill="#fff"/>
+    <text x="656" y="79" fill="#fff" font-size="11.5" font-weight="600">AI course authoring</text>
+
+    <!-- stat cards -->
+    <g>
+      <rect x="196" y="116" width="181" height="74" rx="11" fill="#14151d" stroke="#24252e"/>
+      <text x="214" y="153" fill="#e9e9ee" font-size="23" font-weight="700">87%</text>
+      <text x="214" y="173" fill="#7d7e8a" font-size="10.5">Avg. completion</text>
+      <text x="345" y="138" fill="#34d399" font-size="10" font-weight="600">&#8593; 6%</text>
+    </g>
+    <g>
+      <rect x="393" y="116" width="181" height="74" rx="11" fill="#14151d" stroke="#24252e"/>
+      <text x="411" y="153" fill="#e9e9ee" font-size="23" font-weight="700">3</text>
+      <text x="411" y="173" fill="#7d7e8a" font-size="10.5">Certs expiring soon</text>
+      <circle cx="552" cy="134" r="4" fill="#fbbf24"/>
+    </g>
+    <g>
+      <rect x="590" y="116" width="181" height="74" rx="11" fill="#14151d" stroke="#24252e"/>
+      <text x="608" y="153" fill="#e9e9ee" font-size="23" font-weight="700">2</text>
+      <text x="608" y="173" fill="#7d7e8a" font-size="10.5">Overdue learners</text>
+      <circle cx="749" cy="134" r="4" fill="#f87171"/>
+    </g>
+
+    <!-- courses -->
+    <text x="196" y="220" fill="#9a9aa6" font-size="10.5" font-weight="700" letter-spacing="1">ACTIVE COURSES</text>
+
+    <!-- row 1 -->
+    <rect x="196" y="232" width="576" height="56" rx="11" fill="#14151d" stroke="#24252e"/>
+    <rect x="212" y="246" width="28" height="28" rx="8" fill="#4f46e5" fill-opacity="0.22"/>
+    <path d="M220 268 v-10 a6 6 0 0 1 12 0 v10" fill="none" stroke="#a78bfa" stroke-width="2"/>
+    <text x="256" y="256" fill="#e3e3ea" font-size="12.5" font-weight="600">Security Awareness 2026</text>
+    <text x="256" y="272" fill="#7d7e8a" font-size="10">6 lessons &#183; 1 quiz</text>
+    <rect x="556" y="254" width="140" height="7" rx="3.5" fill="#2a2b38"/>
+    <rect x="556" y="254" width="129" height="7" rx="3.5" fill="url(#bar)"/>
+    <text x="706" y="261" fill="#a78bfa" font-size="11" font-weight="700">92%</text>
+
+    <!-- row 2 -->
+    <rect x="196" y="296" width="576" height="56" rx="11" fill="#14151d" stroke="#24252e"/>
+    <rect x="212" y="310" width="28" height="28" rx="8" fill="#34d399" fill-opacity="0.18"/>
+    <path d="M221 324 l3.5 3.5 l6.5 -7" fill="none" stroke="#34d399" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="256" y="320" fill="#e3e3ea" font-size="12.5" font-weight="600">Code of Conduct &amp; Ethics</text>
+    <text x="256" y="336" fill="#7d7e8a" font-size="10">Completed by all &#183; certified</text>
+    <rect x="556" y="318" width="140" height="7" rx="3.5" fill="#2a2b38"/>
+    <rect x="556" y="318" width="140" height="7" rx="3.5" fill="#34d399"/>
+    <text x="706" y="325" fill="#34d399" font-size="11" font-weight="700">100%</text>
+
+    <!-- row 3 -->
+    <rect x="196" y="360" width="576" height="56" rx="11" fill="#14151d" stroke="#24252e"/>
+    <rect x="212" y="374" width="28" height="28" rx="8" fill="#fbbf24" fill-opacity="0.16"/>
+    <rect x="219" y="382" width="14" height="11" rx="2" fill="none" stroke="#fbbf24" stroke-width="2"/>
+    <path d="M222 382 v-3 a4 4 0 0 1 8 0 v3" fill="none" stroke="#fbbf24" stroke-width="2"/>
+    <text x="256" y="384" fill="#e3e3ea" font-size="12.5" font-weight="600">Data Privacy &#8212; GDPR</text>
+    <text x="256" y="400" fill="#7d7e8a" font-size="10">Certificate expires in 30 days</text>
+    <rect x="556" y="382" width="140" height="7" rx="3.5" fill="#2a2b38"/>
+    <rect x="556" y="382" width="63" height="7" rx="3.5" fill="url(#bar)"/>
+    <text x="706" y="389" fill="#a78bfa" font-size="11" font-weight="700">45%</text>
+
+    <!-- footer hint -->
+    <text x="196" y="448" fill="#5c5d68" font-size="10">Auth: trusted-jwt &#183; Storage: s3 &#183; LLM: bedrock</text>
+  </g>
+
+  <rect x="1" y="1" width="798" height="498" rx="14" fill="none" stroke="#2a2b36" stroke-width="1.5"/>
+</svg>
