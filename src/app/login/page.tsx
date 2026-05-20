@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { config } from "@/lib/config";
 import { getCurrentUser } from "@/lib/auth";
+import { getBranding } from "@/lib/branding";
 import { db, schema } from "@/db";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function LoginPage({
   searchParams,
@@ -22,9 +25,20 @@ export default async function LoginPage({
   if (await getCurrentUser()) redirect(returnTo);
 
   const devMode = config.auth.mode === "dev";
+  const branding = await getBranding();
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
+    <main className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
+      <Logo
+        branding={branding}
+        alt={config.brand.name}
+        className="mb-6 h-9 w-auto"
+      />
+
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">

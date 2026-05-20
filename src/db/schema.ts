@@ -26,6 +26,9 @@ export const orgs = pgTable("orgs", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  // Per-org branding overrides (colors, logo/banner keys). Shape: OrgBranding
+  // in src/lib/branding.ts. Null = use the env-var defaults.
+  branding: jsonb("branding"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

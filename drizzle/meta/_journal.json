@@ -8,6 +8,13 @@
       "when": 1779254393562,
       "tag": "0000_ambiguous_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779255442090,
+      "tag": "0001_harsh_micromacro",
+      "breakpoints": true
     }
   ]
 }

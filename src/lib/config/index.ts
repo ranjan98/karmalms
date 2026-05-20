@@ -15,11 +15,14 @@ export const config = {
   appUrl: env("APP_URL", "http://localhost:3000"),
   databaseUrl: env("DATABASE_URL"),
 
-  // Branding — drives the login page and shell without a fork.
+  // Branding defaults — the fallback when an org has set nothing in-app.
   brand: {
     name: env("BRAND_NAME", "KarmaLMS"),
-    logoUrl: env("BRAND_LOGO_URL", "/logo.svg"),
-    primaryColor: env("BRAND_PRIMARY_COLOR", "#4f46e5"),
+    primaryColor: env("BRAND_PRIMARY_COLOR", "#6366f1"),
+    logoLight: env("BRAND_LOGO_LIGHT", env("BRAND_LOGO_URL", "/logo.svg")),
+    logoDark: env("BRAND_LOGO_DARK", env("BRAND_LOGO_URL", "/logo.svg")),
+    bannerLight: env("BRAND_BANNER_LIGHT"),
+    bannerDark: env("BRAND_BANNER_DARK"),
     supportUrl: env("BRAND_SUPPORT_URL"),
   },
 
