@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { listOrgUsers, listUserEnrollments } from "@/lib/enrollments";
 import { Badge } from "@/components/ui/badge";
+import { RoleSelect } from "./role-select";
 
 export default async function PeoplePage() {
   const user = await requireUser();
   // People is a manager/admin view; learners have no business here.
   if (user.role === "learner") redirect("/dashboard");
 
+  const isAdmin = user.role === "admin";
   const users = await listOrgUsers(user.orgId);
   const rows = await Promise.all(
     users.map(async (u) => {
@@ -27,7 +29,9 @@ export default async function PeoplePage() {
     <div className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">People</h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        Everyone in your organization and their training progress.
+        {isAdmin
+          ? "Everyone in your organization. Change a role with the dropdown."
+          : "Everyone in your organization and their training progress."}
       </p>
 
       <div className="mt-6 overflow-hidden rounded-md border">
@@ -49,9 +53,17 @@ export default async function PeoplePage() {
                   </div>
                 </td>
                 <td className="px-4 py-2.5">
-                  <Badge variant="secondary" className="capitalize">
-                    {r.role}
-                  </Badge>
+                  {isAdmin ? (
+                    <RoleSelect
+                      userId={r.id}
+                      role={r.role}
+                      disabled={r.id === user.id}
+                    />
+                  ) : (
+                    <Badge variant="secondary" className="capitalize">
+                      {r.role}
+                    </Badge>
+                  )}
                 </td>
                 <td className="text-muted-foreground px-4 py-2.5">
                   {r.completed} of {r.assigned}
