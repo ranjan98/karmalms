@@ -38,6 +38,7 @@ import {
   moveLesson,
   assignCourse,
   unassignCourse,
+  retakeCourse,
 } from "../actions";
 
 type Course = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
@@ -138,6 +139,20 @@ async function AdminCourse({
               />
               Published — visible to learners
             </label>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="certificateValidityDays">
+                Certificate validity (days)
+              </Label>
+              <Input
+                id="certificateValidityDays"
+                name="certificateValidityDays"
+                type="number"
+                min={1}
+                defaultValue={course.certificateValidityDays ?? ""}
+                placeholder="Leave blank for no certificate"
+                className="max-w-xs"
+              />
+            </div>
             <div>
               <Button type="submit">Save changes</Button>
             </div>
@@ -366,6 +381,20 @@ async function LearnerCourse({
             {enrollment.completedAt && <Badge>Completed</Badge>}
           </div>
         </div>
+      )}
+
+      {enrollment?.completedAt && (
+        <form action={retakeCourse} className="mt-3">
+          <input type="hidden" name="courseId" value={course.id} />
+          <ConfirmButton
+            type="submit"
+            variant="outline"
+            size="sm"
+            confirmText="Retake this course? Your progress is cleared so you can complete it again."
+          >
+            Retake course
+          </ConfirmButton>
+        </form>
       )}
 
       <h2 className="mt-8 text-lg font-semibold">Lessons</h2>

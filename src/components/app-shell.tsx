@@ -3,7 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, Users, Settings, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Award,
+  Users,
+  Settings,
+  Menu,
+} from "lucide-react";
 import type { Role } from "@/lib/auth";
 import type { OrgBranding } from "@/lib/branding";
 import { cn } from "@/lib/utils";
@@ -35,6 +42,12 @@ const NAV_ITEMS: {
     href: "/courses",
     label: "Courses",
     icon: BookOpen,
+    roles: ["admin", "manager", "learner"],
+  },
+  {
+    href: "/certifications",
+    label: "Certifications",
+    icon: Award,
     roles: ["admin", "manager", "learner"],
   },
   { href: "/people", label: "People", icon: Users, roles: ["admin", "manager"] },

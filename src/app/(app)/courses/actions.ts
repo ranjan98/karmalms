@@ -2,11 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { getCourse, getLesson, isUuid, listLessons } from "@/lib/courses";
 import { getEnrollment, markCourseCompletion } from "@/lib/enrollments";
+import { getQuiz } from "@/lib/quizzes";
 
 /** Course authoring is admin-only. */
 async function requireAdmin() {
@@ -19,6 +20,12 @@ async function requireAdmin() {
 
 function field(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
+}
+
+/** Parses the certificate validity field — a positive day count, or null. */
+function parseValidityDays(raw: string): number | null {
+  const n = Number(raw);
+  return raw && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
 }
 
 // --- Courses -------------------------------------------------------------
@@ -51,6 +58,9 @@ export async function updateCourse(formData: FormData): Promise<void> {
       title,
       description: field(formData, "description") || null,
       published: formData.get("published") === "on",
+      certificateValidityDays: parseValidityDays(
+        field(formData, "certificateValidityDays"),
+      ),
     })
     .where(eq(schema.courses.id, courseId));
 
@@ -252,4 +262,51 @@ export async function uncompleteLesson(formData: FormData): Promise<void> {
   await markCourseCompletion(user.id, courseId);
   revalidatePath(`/courses/${courseId}`);
   revalidatePath(`/courses/${courseId}/lessons/${lessonId}`);
+}
+
+/**
+ * Clears a learner's progress for a course so they can take it again — used
+ * to recertify after a certificate lapses. Self-service.
+ */
+export async function retakeCourse(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const courseId = field(formData, "courseId");
+  const course = await getCourse(courseId, user.orgId);
+  if (!course) throw new Error("Course not found.");
+  const enrollment = await getEnrollment(user.id, courseId);
+  if (!enrollment) throw new Error("You are not enrolled in this course.");
+
+  const lessons = await listLessons(courseId);
+  if (lessons.length > 0) {
+    await db.delete(schema.lessonProgress).where(
+      and(
+        eq(schema.lessonProgress.userId, user.id),
+        inArray(
+          schema.lessonProgress.lessonId,
+          lessons.map((l) => l.id),
+        ),
+      ),
+    );
+  }
+
+  const quiz = await getQuiz(courseId);
+  if (quiz) {
+    await db
+      .delete(schema.quizAttempts)
+      .where(
+        and(
+          eq(schema.quizAttempts.userId, user.id),
+          eq(schema.quizAttempts.quizId, quiz.id),
+        ),
+      );
+  }
+
+  await db
+    .update(schema.enrollments)
+    .set({ completedAt: null })
+    .where(eq(schema.enrollments.id, enrollment.id));
+
+  // Recomputes completion (now incomplete) — which also revokes the cert.
+  await markCourseCompletion(user.id, courseId);
+  revalidatePath(`/courses/${courseId}`);
 }

@@ -60,6 +60,9 @@ export const courses = pgTable("courses", {
   title: text("title").notNull(),
   description: text("description"),
   published: boolean("published").notNull().default(false),
+  // When set, completing the course issues a certificate valid this many
+  // days. Null = the course issues no certificate.
+  certificateValidityDays: integer("certificate_validity_days"),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -153,8 +156,27 @@ export const quizAttempts = pgTable("quiz_attempts", {
 });
 
 /**
- * v0.2 — certifications with expiry. Kept here as the schema seam so the
- * differentiating feature (compliance tracking + lapse reminders) slots in
- * without a migration rethink.
+ * Certificates — issued when a learner completes a course whose
+ * `certificateValidityDays` is set. One per (user, course); re-completion
+ * after a retake issues a fresh one.
  */
-// export const certifications = pgTable("certifications", { ... });
+export const certificates = pgTable(
+  "certificates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    issuedAt: timestamp("issued_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (t) => ({
+    uniq: uniqueIndex("certificates_user_course_idx").on(
+      t.userId,
+      t.courseId,
+    ),
+  }),
+);

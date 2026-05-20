@@ -6,6 +6,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { isUuid, listLessons } from "@/lib/courses";
 import { quizGate, hasPassedQuiz } from "@/lib/quizzes";
+import { syncCertificate } from "@/lib/certificates";
 
 export async function listOrgUsers(orgId: string) {
   return db
@@ -136,6 +137,9 @@ export async function markCourseCompletion(
     .update(schema.enrollments)
     .set({ completedAt })
     .where(eq(schema.enrollments.id, enrollment.id));
+
+  // Issue or revoke the course certificate to match completion.
+  await syncCertificate(userId, courseId, done);
 }
 
 /**
