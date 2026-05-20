@@ -40,7 +40,7 @@ export async function generateCourseDraft(
 }
 
 /** Extracts and validates the course JSON from the model's response. */
-function parseDraft(raw: string): CourseDraft {
+export function parseDraft(raw: string): CourseDraft {
   let text = raw.trim();
 
   // Strip a ```json ... ``` fence if the model added one.
