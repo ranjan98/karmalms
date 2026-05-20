@@ -137,3 +137,54 @@ export async function markCourseCompletion(
     .set({ completedAt })
     .where(eq(schema.enrollments.id, enrollment.id));
 }
+
+/**
+ * Per-course enrollment counts for an org — total assigned and completed.
+ * One query (left join, grouped in memory) for the admin/manager dashboard.
+ */
+export async function listCourseCompletion(orgId: string) {
+  const rows = await db
+    .select({
+      courseId: schema.courses.id,
+      title: schema.courses.title,
+      published: schema.courses.published,
+      enrolledUserId: schema.enrollments.userId,
+      completedAt: schema.enrollments.completedAt,
+    })
+    .from(schema.courses)
+    .leftJoin(
+      schema.enrollments,
+      eq(schema.enrollments.courseId, schema.courses.id),
+    )
+    .where(eq(schema.courses.orgId, orgId))
+    .orderBy(schema.courses.title);
+
+  const byCourse = new Map<
+    string,
+    {
+      courseId: string;
+      title: string;
+      published: boolean;
+      total: number;
+      completed: number;
+    }
+  >();
+
+  for (const row of rows) {
+    let entry = byCourse.get(row.courseId);
+    if (!entry) {
+      entry = {
+        courseId: row.courseId,
+        title: row.title,
+        published: row.published,
+        total: 0,
+        completed: 0,
+      };
+      byCourse.set(row.courseId, entry);
+    }
+    if (row.enrolledUserId) entry.total += 1;
+    if (row.completedAt) entry.completed += 1;
+  }
+
+  return [...byCourse.values()];
+}
