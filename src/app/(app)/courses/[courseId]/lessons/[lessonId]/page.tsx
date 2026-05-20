@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/markdown";
 import { updateLesson, completeLesson, uncompleteLesson } from "../../../actions";
 
 export default async function LessonPage({
@@ -50,13 +51,18 @@ export default async function LessonPage({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="body">Content</Label>
+            <Label htmlFor="body">
+              Content
+              <span className="text-muted-foreground font-normal">
+                — Markdown supported
+              </span>
+            </Label>
             <Textarea
               id="body"
               name="body"
               defaultValue={body}
               rows={16}
-              placeholder="Write the lesson content here…"
+              placeholder="Write the lesson content in Markdown…"
             />
           </div>
           <div>
@@ -87,13 +93,13 @@ export default async function LessonPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {lesson.title}
         </h1>
-        <div className="mt-4 leading-relaxed whitespace-pre-wrap">
-          {body || (
-            <span className="text-muted-foreground">
-              This lesson has no content yet.
-            </span>
-          )}
-        </div>
+        {body ? (
+          <Markdown className="mt-4">{body}</Markdown>
+        ) : (
+          <p className="text-muted-foreground mt-4 text-sm">
+            This lesson has no content yet.
+          </p>
+        )}
       </article>
 
       {enrollment && (

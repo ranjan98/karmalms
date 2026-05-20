@@ -70,19 +70,55 @@ async function main() {
         courseId: course.id,
         title: "Phishing & Social Engineering",
         position: 0,
-        content: { blocks: ["How to spot and report phishing attempts."] },
+        content: {
+          body: [
+            "## Spotting a phishing attempt",
+            "",
+            "Phishing emails try to trick you into handing over credentials or",
+            "money. Watch for:",
+            "",
+            "- A sender address that doesn't match the real organization",
+            "- Links that, on hover, point somewhere unexpected",
+            "- Urgency — *“act now or your account will be closed”*",
+            "",
+            "**Never** enter your password on a page you reached from an email",
+            "link. When in doubt, report it to IT.",
+          ].join("\n"),
+        },
       },
       {
         courseId: course.id,
         title: "Passwords & Multi-Factor Auth",
         position: 1,
-        content: { blocks: ["Strong passwords, password managers, and MFA."] },
+        content: {
+          body: [
+            "## Strong passwords",
+            "",
+            "1. Use a unique password for every service",
+            "2. Let a password manager generate and store them",
+            "3. Turn on **multi-factor authentication** everywhere it's offered",
+            "",
+            "MFA means that even a stolen password isn't enough to get in.",
+          ].join("\n"),
+        },
       },
       {
         courseId: course.id,
         title: "Handling Sensitive Data",
         position: 2,
-        content: { blocks: ["Classifying and protecting company data."] },
+        content: {
+          body: [
+            "## Classifying data",
+            "",
+            "| Level | Examples | Handling |",
+            "| --- | --- | --- |",
+            "| Public | Marketing pages | No restrictions |",
+            "| Internal | Org charts | Employees only |",
+            "| Confidential | Customer PII | Encrypt, limit access |",
+            "",
+            "When unsure, treat data as **Confidential** until told otherwise.",
+          ].join("\n"),
+        },
       },
     ])
     .returning();
