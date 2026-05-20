@@ -5,6 +5,7 @@
  * admin in-app), merged over the env-var defaults. So a fresh install looks
  * fine immediately, and a company can rebrand without a redeploy.
  */
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { config } from "@/lib/config";
@@ -49,29 +50,37 @@ function defaults(): OrgBranding {
   };
 }
 
-/** Branding for an org (DB overrides merged over env defaults). */
-export async function getBranding(orgId?: string): Promise<OrgBranding> {
-  const base = defaults();
-  if (!orgId) return base;
+/**
+ * Branding for an org (DB overrides merged over env defaults). Wrapped in
+ * React `cache` so the root layout and the app layout share one DB lookup
+ * per request.
+ */
+export const getBranding = cache(
+  async (orgId?: string): Promise<OrgBranding> => {
+    const base = defaults();
+    if (!orgId) return base;
 
-  const [org] = await db
-    .select({ branding: schema.orgs.branding })
-    .from(schema.orgs)
-    .where(eq(schema.orgs.id, orgId))
-    .limit(1);
+    const [org] = await db
+      .select({ branding: schema.orgs.branding })
+      .from(schema.orgs)
+      .where(eq(schema.orgs.id, orgId))
+      .limit(1);
 
-  const stored = (org?.branding ?? null) as Partial<OrgBranding> | null;
-  if (!stored) return base;
+    const stored = (org?.branding ?? null) as Partial<OrgBranding> | null;
+    if (!stored) return base;
 
-  return {
-    primaryColor: safeColor(stored.primaryColor, base.primaryColor),
-    logoLight: stored.logoLight ? toAssetUrl(stored.logoLight) : base.logoLight,
-    logoDark: stored.logoDark ? toAssetUrl(stored.logoDark) : base.logoDark,
-    bannerLight: stored.bannerLight
-      ? toAssetUrl(stored.bannerLight)
-      : base.bannerLight,
-    bannerDark: stored.bannerDark
-      ? toAssetUrl(stored.bannerDark)
-      : base.bannerDark,
-  };
-}
+    return {
+      primaryColor: safeColor(stored.primaryColor, base.primaryColor),
+      logoLight: stored.logoLight
+        ? toAssetUrl(stored.logoLight)
+        : base.logoLight,
+      logoDark: stored.logoDark ? toAssetUrl(stored.logoDark) : base.logoDark,
+      bannerLight: stored.bannerLight
+        ? toAssetUrl(stored.bannerLight)
+        : base.bannerLight,
+      bannerDark: stored.bannerDark
+        ? toAssetUrl(stored.bannerDark)
+        : base.bannerDark,
+    };
+  },
+);

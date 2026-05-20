@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -35,14 +34,8 @@ export default async function SettingsPage({
     .limit(1);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link
-        href="/dashboard"
-        className="text-muted-foreground hover:text-foreground text-sm"
-      >
-        ← Back to dashboard
-      </Link>
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">Branding</h1>
+    <div className="mx-auto max-w-2xl px-6 py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">Branding</h1>
       <p className="text-muted-foreground mt-1 text-sm">
         Customize how KarmaLMS looks for everyone in your organization.
       </p>
@@ -125,7 +118,7 @@ export default async function SettingsPage({
           <Button type="submit">Save branding</Button>
         </div>
       </form>
-    </main>
+    </div>
   );
 }
 
