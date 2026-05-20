@@ -55,14 +55,47 @@ docker compose up
 That boots the app, a Postgres (pgvector) database, and a MinIO S3 — **no AWS
 account needed to try it**. Open <http://localhost:3000>.
 
-Local development without Docker:
+## Local setup without Docker
+
+KarmaLMS needs one thing: a **Postgres database**. (S3 is only used for
+uploaded branding logos — everything else runs without it. pgvector is not
+required yet.)
+
+**1. Get a Postgres database** — either is fine:
+
+- *Hosted (no install):* create a free database at [Neon](https://neon.tech)
+  or [Supabase](https://supabase.com) and copy its connection string.
+- *Local:* install Postgres (e.g. [Postgres.app](https://postgresapp.com) on
+  macOS, or `brew install postgresql@16`) and create a database:
+  `createdb karmalms`.
+
+**2. Configure and run:**
 
 ```bash
+cp .env.example .env
+# edit .env → set DATABASE_URL to your Postgres connection string
+#   hosted: postgres://user:pass@host/db?sslmode=require
+#   local:  postgres://localhost:5432/karmalms
 npm install
 npm run db:migrate   # apply the schema
-npm run db:seed      # load a demo org (optional)
+npm run db:seed      # load a demo org + users + a course
 npm run dev
 ```
+
+Open <http://localhost:3000>. (If port 3000 is busy, Next picks another —
+or pin one with `npm run dev -- -p 3100` and set `APP_URL` to match.)
+
+**3. Sign in.** The default `AUTH_MODE=dev` needs no SSO — the login page
+lists the seeded accounts; click one:
+
+| Account | Role |
+|---|---|
+| `admin@acme.test` | admin — author courses, assign, branding |
+| `manager@acme.test` | manager — reporting |
+| `learner@acme.test` | learner — take assigned courses |
+
+For production SSO instead, set `AUTH_MODE=oidc` and the `OIDC_*` variables
+(see `.env.example`).
 
 ## Architecture
 
