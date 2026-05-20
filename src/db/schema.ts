@@ -187,3 +187,20 @@ export const certificates = pgTable(
     ),
   }),
 );
+
+/**
+ * Outbound webhooks — an org registers URLs that receive signed event
+ * payloads (course.completed, certificate.issued) so external systems can
+ * integrate without forking.
+ */
+export const webhooks = pgTable("webhooks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id")
+    .notNull()
+    .references(() => orgs.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  // Used to HMAC-sign deliveries so the receiver can verify authenticity.
+  secret: text("secret").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

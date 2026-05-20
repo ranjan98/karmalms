@@ -43,6 +43,13 @@
       "when": 1779311150573,
       "tag": "0005_long_stephen_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779311547403,
+      "tag": "0006_windy_giant_man",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import { db, schema } from "@/db";
 import { isUuid, listLessons } from "@/lib/courses";
 import { quizGate, hasPassedQuiz } from "@/lib/quizzes";
 import { syncCertificate } from "@/lib/certificates";
+import { dispatchEvent } from "@/lib/webhooks";
 
 export async function listOrgUsers(orgId: string) {
   return db
@@ -150,6 +151,23 @@ export async function markCourseCompletion(
 
   // Issue or revoke the course certificate to match completion.
   await syncCertificate(userId, courseId, done);
+
+  // Emit a webhook event the first time the course is completed.
+  if (done && !enrollment.completedAt && completedAt) {
+    const [course] = await db
+      .select({ orgId: schema.courses.orgId, title: schema.courses.title })
+      .from(schema.courses)
+      .where(eq(schema.courses.id, courseId))
+      .limit(1);
+    if (course) {
+      void dispatchEvent(course.orgId, "course.completed", {
+        userId,
+        courseId,
+        courseTitle: course.title,
+        completedAt: completedAt.toISOString(),
+      });
+    }
+  }
 }
 
 /**

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
@@ -118,6 +119,17 @@ export default async function SettingsPage({
           <Button type="submit">Save branding</Button>
         </div>
       </form>
+
+      <div className="mt-10 border-t pt-6">
+        <h2 className="text-base font-semibold">Integrations</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Send <code>course.completed</code> and{" "}
+          <code>certificate.issued</code> events to external systems.
+        </p>
+        <Button asChild variant="outline" className="mt-3">
+          <Link href="/admin/webhooks">Manage webhooks</Link>
+        </Button>
+      </div>
     </div>
   );
 }

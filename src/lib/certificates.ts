@@ -5,6 +5,7 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { isUuid } from "@/lib/courses";
+import { dispatchEvent } from "@/lib/webhooks";
 
 export type CertStatus = "valid" | "expiring" | "expired";
 
@@ -30,13 +31,18 @@ export async function syncCertificate(
   completed: boolean,
 ): Promise<void> {
   const [course] = await db
-    .select({ validityDays: schema.courses.certificateValidityDays })
+    .select({
+      orgId: schema.courses.orgId,
+      title: schema.courses.title,
+      validityDays: schema.courses.certificateValidityDays,
+    })
     .from(schema.courses)
     .where(eq(schema.courses.id, courseId))
     .limit(1);
 
-  const validityDays = course?.validityDays ?? null;
-  if (validityDays == null) return; // no certificate program
+  // No course, or no certificate program — nothing to do.
+  if (!course || course.validityDays == null) return;
+  const validityDays = course.validityDays;
 
   const [existing] = await db
     .select({ id: schema.certificates.id })
@@ -66,7 +72,16 @@ export async function syncCertificate(
     .insert(schema.certificates)
     .values({ userId, courseId, issuedAt, expiresAt })
     .onConflictDoNothing();
+
+  void dispatchEvent(course.orgId, "certificate.issued", {
+    userId,
+    courseId,
+    courseTitle: course.title,
+    issuedAt: issuedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+  });
 }
+
 
 /** A learner's certificates, joined with the course. */
 export async function listUserCertificates(userId: string) {
