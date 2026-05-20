@@ -114,6 +114,45 @@ export const lessonProgress = pgTable(
 );
 
 /**
+ * Quizzes — one optional quiz per course. A question stores its choices
+ * inline as a 4-element `options` array with the index of the correct one.
+ */
+export const quizzes = pgTable("quizzes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .unique()
+    .references(() => courses.id, { onDelete: "cascade" }),
+  passingScore: integer("passing_score").notNull().default(70),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const quizQuestions = pgTable("quiz_questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  quizId: uuid("quiz_id")
+    .notNull()
+    .references(() => quizzes.id, { onDelete: "cascade" }),
+  prompt: text("prompt").notNull(),
+  // Four answer choices, stored as a string[4].
+  options: jsonb("options").notNull(),
+  correctIndex: integer("correct_index").notNull().default(0),
+  position: integer("position").notNull().default(0),
+});
+
+export const quizAttempts = pgTable("quiz_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  quizId: uuid("quiz_id")
+    .notNull()
+    .references(() => quizzes.id, { onDelete: "cascade" }),
+  score: integer("score").notNull(),
+  passed: boolean("passed").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/**
  * v0.2 — certifications with expiry. Kept here as the schema seam so the
  * differentiating feature (compliance tracking + lapse reminders) slots in
  * without a migration rethink.

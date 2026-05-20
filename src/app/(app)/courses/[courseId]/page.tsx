@@ -223,6 +223,14 @@ async function AdminCourse({
         ))}
       </div>
 
+      <h2 className="mt-8 text-lg font-semibold">Quiz</h2>
+      <Link
+        href={`/courses/${course.id}/quiz`}
+        className="hover:border-primary mt-3 flex items-center rounded-md border px-3 py-2.5 text-sm font-medium transition-colors"
+      >
+        Manage the course quiz →
+      </Link>
+
       <h2 className="mt-8 text-lg font-semibold">People</h2>
       <p className="text-muted-foreground mt-1 text-sm">
         Assign this course and track who has completed it.
@@ -389,6 +397,14 @@ async function LearnerCourse({
           );
         })}
       </div>
+
+      <h2 className="mt-8 text-lg font-semibold">Quiz</h2>
+      <Link
+        href={`/courses/${course.id}/quiz`}
+        className="hover:border-primary mt-3 flex items-center rounded-md border px-3 py-2.5 text-sm font-medium transition-colors"
+      >
+        Open the course quiz →
+      </Link>
     </>
   );
 }

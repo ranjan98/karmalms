@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { getCourse, getLesson, isUuid, listLessons } from "@/lib/courses";
-import { courseProgress, getEnrollment } from "@/lib/enrollments";
+import { getEnrollment, markCourseCompletion } from "@/lib/enrollments";
 
 /** Course authoring is admin-only. */
 async function requireAdmin() {
@@ -208,24 +208,6 @@ export async function unassignCourse(formData: FormData): Promise<void> {
 
 // --- Progress (a learner completes lessons) ------------------------------
 
-/** Marks the enrollment complete once every lesson is done (and vice versa). */
-async function refreshCourseCompletion(
-  userId: string,
-  courseId: string,
-): Promise<void> {
-  const enrollment = await getEnrollment(userId, courseId);
-  if (!enrollment) return;
-
-  const { total, completed } = await courseProgress(userId, courseId);
-  const done = total > 0 && completed >= total;
-  const completedAt = done ? (enrollment.completedAt ?? new Date()) : null;
-
-  await db
-    .update(schema.enrollments)
-    .set({ completedAt })
-    .where(eq(schema.enrollments.id, enrollment.id));
-}
-
 export async function completeLesson(formData: FormData): Promise<void> {
   const user = await requireUser();
   const courseId = field(formData, "courseId");
@@ -243,7 +225,7 @@ export async function completeLesson(formData: FormData): Promise<void> {
     .values({ userId: user.id, lessonId })
     .onConflictDoNothing();
 
-  await refreshCourseCompletion(user.id, courseId);
+  await markCourseCompletion(user.id, courseId);
   revalidatePath(`/courses/${courseId}`);
   revalidatePath(`/courses/${courseId}/lessons/${lessonId}`);
 }
@@ -267,7 +249,7 @@ export async function uncompleteLesson(formData: FormData): Promise<void> {
       ),
     );
 
-  await refreshCourseCompletion(user.id, courseId);
+  await markCourseCompletion(user.id, courseId);
   revalidatePath(`/courses/${courseId}`);
   revalidatePath(`/courses/${courseId}/lessons/${lessonId}`);
 }

@@ -5,6 +5,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { isUuid, listLessons } from "@/lib/courses";
+import { quizGate, hasPassedQuiz } from "@/lib/quizzes";
 
 export async function listOrgUsers(orgId: string) {
   return db
@@ -106,4 +107,33 @@ export async function completionCounts(
     counts.set(row.userId, (counts.get(row.userId) ?? 0) + 1);
   }
   return counts;
+}
+
+/**
+ * Recomputes an enrollment's completion: complete when every lesson is done
+ * and, if the course has a quiz with questions, that quiz has been passed.
+ * Called after a learner finishes a lesson or a quiz attempt.
+ */
+export async function markCourseCompletion(
+  userId: string,
+  courseId: string,
+): Promise<void> {
+  const enrollment = await getEnrollment(userId, courseId);
+  if (!enrollment) return;
+
+  const { total, completed } = await courseProgress(userId, courseId);
+  const gate = await quizGate(courseId);
+
+  const lessonsDone = completed >= total;
+  const quizDone =
+    !gate.required ||
+    (gate.quiz !== null && (await hasPassedQuiz(userId, gate.quiz.id)));
+  const hasContent = total > 0 || gate.required;
+  const done = hasContent && lessonsDone && quizDone;
+
+  const completedAt = done ? (enrollment.completedAt ?? new Date()) : null;
+  await db
+    .update(schema.enrollments)
+    .set({ completedAt })
+    .where(eq(schema.enrollments.id, enrollment.id));
 }
