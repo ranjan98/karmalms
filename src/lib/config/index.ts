@@ -8,7 +8,7 @@ function env(key: string, fallback = ""): string {
   return process.env[key] ?? fallback;
 }
 
-export type AuthMode = "oidc" | "trusted-jwt" | "saml";
+export type AuthMode = "dev" | "oidc" | "trusted-jwt" | "saml";
 export type LlmMode = "bedrock" | "openai" | "none";
 
 export const config = {
@@ -24,7 +24,9 @@ export const config = {
   },
 
   auth: {
-    mode: env("AUTH_MODE", "oidc") as AuthMode,
+    mode: env("AUTH_MODE", "dev") as AuthMode,
+    // Signs the session cookie (HS256). Generate: openssl rand -base64 32
+    sessionSecret: env("SESSION_SECRET", "dev-insecure-secret-change-me"),
     oidc: {
       issuerUrl: env("OIDC_ISSUER_URL"),
       clientId: env("OIDC_CLIENT_ID"),

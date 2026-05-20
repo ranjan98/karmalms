@@ -1,5 +1,6 @@
 import { config } from "@/lib/config";
 import type { AuthAdapter } from "./types";
+import { devAdapter } from "./adapters/dev";
 import { oidcAdapter } from "./adapters/oidc";
 import { trustedJwtAdapter } from "./adapters/trusted-jwt";
 
@@ -9,6 +10,8 @@ import { trustedJwtAdapter } from "./adapters/trusted-jwt";
  */
 function resolveAdapter(): AuthAdapter {
   switch (config.auth.mode) {
+    case "dev":
+      return devAdapter;
     case "oidc":
       return oidcAdapter;
     case "trusted-jwt":
@@ -22,4 +25,12 @@ function resolveAdapter(): AuthAdapter {
 }
 
 export const auth: AuthAdapter = resolveAdapter();
+
 export type { AuthAdapter, AuthUser, Role } from "./types";
+export type { SessionUser } from "./session-token";
+export {
+  getCurrentUser,
+  requireUser,
+  createSession,
+  destroySession,
+} from "./session";
