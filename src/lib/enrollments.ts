@@ -16,6 +16,16 @@ export async function listOrgUsers(orgId: string) {
     .orderBy(schema.users.name);
 }
 
+/** A manager's direct reports. */
+export async function listReports(managerId: string) {
+  if (!isUuid(managerId)) return [];
+  return db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.managerId, managerId))
+    .orderBy(schema.users.name);
+}
+
 export async function getEnrollment(userId: string, courseId: string) {
   if (!isUuid(userId) || !isUuid(courseId)) return null;
   const [enrollment] = await db

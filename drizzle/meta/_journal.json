@@ -29,6 +29,13 @@
       "when": 1779296837050,
       "tag": "0003_panoramic_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779304218430,
+      "tag": "0004_flippant_firebird",
+      "breakpoints": true
     }
   ]
 }

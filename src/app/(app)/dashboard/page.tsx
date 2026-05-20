@@ -5,6 +5,7 @@ import {
   courseProgress,
   listCourseCompletion,
   listOrgUsers,
+  listReports,
 } from "@/lib/enrollments";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/progress-bar";
@@ -23,8 +24,10 @@ export default async function DashboardPage() {
 
       {user.role === "learner" ? (
         <LearnerDashboard userId={user.id} />
+      ) : user.role === "manager" ? (
+        <ManagerDashboard managerId={user.id} />
       ) : (
-        <StaffDashboard orgId={user.orgId} role={user.role} />
+        <AdminDashboard orgId={user.orgId} />
       )}
     </div>
   );
@@ -113,13 +116,7 @@ async function LearnerDashboard({ userId }: { userId: string }) {
   );
 }
 
-async function StaffDashboard({
-  orgId,
-  role,
-}: {
-  orgId: string;
-  role: string;
-}) {
+async function AdminDashboard({ orgId }: { orgId: string }) {
   const completion = await listCourseCompletion(orgId);
   const people = await listOrgUsers(orgId);
 
@@ -149,11 +146,9 @@ async function StaffDashboard({
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Course completion</h2>
-        {role === "admin" && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/courses">Manage courses</Link>
-          </Button>
-        )}
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/courses">Manage courses</Link>
+        </Button>
       </div>
 
       {completion.length === 0 ? (
@@ -178,6 +173,76 @@ async function StaffDashboard({
                 </CardContent>
               </Card>
             </Link>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+async function ManagerDashboard({ managerId }: { managerId: string }) {
+  const reports = await listReports(managerId);
+  const rows = await Promise.all(
+    reports.map(async (r) => {
+      const enrollments = await listUserEnrollments(r.id);
+      return {
+        id: r.id,
+        name: r.name ?? r.email,
+        assigned: enrollments.length,
+        completed: enrollments.filter((e) => e.completedAt).length,
+      };
+    }),
+  );
+
+  const totalAssigned = rows.reduce((s, r) => s + r.assigned, 0);
+  const totalCompleted = rows.reduce((s, r) => s + r.completed, 0);
+  const rate =
+    totalAssigned > 0
+      ? Math.round((totalCompleted / totalAssigned) * 100)
+      : 0;
+
+  return (
+    <>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <Stat label="Team size" value={rows.length} />
+        <Stat
+          label="Courses completed"
+          value={totalCompleted}
+          hint={`of ${totalAssigned} assigned`}
+        />
+        <Stat label="Completion rate" value={`${rate}%`} />
+      </div>
+
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Your team</h2>
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/people">People</Link>
+        </Button>
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground mt-2 text-sm">
+          No one reports to you yet — an admin sets reporting lines on the
+          People page.
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-2">
+          {rows.map((r) => (
+            <Card key={r.id}>
+              <CardContent>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium">{r.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {r.completed} / {r.assigned} completed
+                  </span>
+                </div>
+                <ProgressBar
+                  value={r.completed}
+                  total={r.assigned}
+                  className="mt-2"
+                />
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

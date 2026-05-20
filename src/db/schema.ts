@@ -18,6 +18,7 @@ import {
   jsonb,
   pgEnum,
   uniqueIndex,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 export const userRole = pgEnum("user_role", ["admin", "manager", "learner"]);
@@ -44,6 +45,10 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name"),
     role: userRole("role").notNull().default("learner"),
+    // Optional reporting line — who this user reports to (set by an admin).
+    managerId: uuid("manager_id").references((): AnyPgColumn => users.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({

@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import {
   listUserCertificates,
   listOrgCertificates,
+  listTeamCertificates,
   certStatus,
   type CertStatus,
 } from "@/lib/certificates";
@@ -41,7 +42,7 @@ export default async function CertificationsPage() {
       {user.role === "learner" ? (
         <LearnerCerts userId={user.id} />
       ) : (
-        <OrgCerts orgId={user.orgId} />
+        <StaffCerts role={user.role} orgId={user.orgId} userId={user.id} />
       )}
     </div>
   );
@@ -93,16 +94,28 @@ async function LearnerCerts({ userId }: { userId: string }) {
   );
 }
 
-async function OrgCerts({ orgId }: { orgId: string }) {
-  const certs = await listOrgCertificates(orgId);
+async function StaffCerts({
+  role,
+  orgId,
+  userId,
+}: {
+  role: string;
+  orgId: string;
+  userId: string;
+}) {
+  const certs =
+    role === "manager"
+      ? await listTeamCertificates(userId)
+      : await listOrgCertificates(orgId);
   const expiring = certs.filter(
     (c) => certStatus(c.expiresAt) !== "valid",
   ).length;
+  const scope = role === "manager" ? "your team" : "your organization";
 
   return (
     <>
       <p className="text-muted-foreground mt-1 text-sm">
-        Every certificate across your organization
+        Every certificate across {scope}
         {expiring > 0 ? ` — ${expiring} need attention.` : "."}
       </p>
       {certs.length === 0 ? (

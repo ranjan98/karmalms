@@ -1,46 +1,69 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { listOrgUsers, listUserEnrollments } from "@/lib/enrollments";
+import {
+  listOrgUsers,
+  listReports,
+  listUserEnrollments,
+} from "@/lib/enrollments";
 import { Badge } from "@/components/ui/badge";
 import { RoleSelect } from "./role-select";
+import { ManagerSelect } from "./manager-select";
 
-export default async function PeoplePage() {
-  const user = await requireUser();
-  // People is a manager/admin view; learners have no business here.
-  if (user.role === "learner") redirect("/dashboard");
+type OrgUser = Awaited<ReturnType<typeof listOrgUsers>>[number];
 
-  const isAdmin = user.role === "admin";
-  const users = await listOrgUsers(user.orgId);
-  const rows = await Promise.all(
+async function withStats(users: OrgUser[]) {
+  return Promise.all(
     users.map(async (u) => {
       const enrollments = await listUserEnrollments(u.id);
       return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
+        ...u,
         assigned: enrollments.length,
         completed: enrollments.filter((e) => e.completedAt).length,
       };
     }),
   );
+}
+
+export default async function PeoplePage() {
+  const user = await requireUser();
+  if (user.role === "learner") redirect("/dashboard");
+
+  return user.role === "admin" ? (
+    <AdminPeople orgId={user.orgId} currentUserId={user.id} />
+  ) : (
+    <ManagerPeople managerId={user.id} />
+  );
+}
+
+async function AdminPeople({
+  orgId,
+  currentUserId,
+}: {
+  orgId: string;
+  currentUserId: string;
+}) {
+  const users = await listOrgUsers(orgId);
+  const rows = await withStats(users);
+  const managerOptions = users
+    .filter((u) => u.role === "admin" || u.role === "manager")
+    .map((u) => ({ id: u.id, label: u.name ?? u.email }));
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">People</h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        {isAdmin
-          ? "Everyone in your organization. Change a role with the dropdown."
-          : "Everyone in your organization and their training progress."}
+        Everyone in your organization. Set roles and reporting lines with the
+        dropdowns.
       </p>
 
-      <div className="mt-6 overflow-hidden rounded-md border">
+      <div className="mt-6 overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-muted-foreground bg-muted/50 text-left">
               <th className="px-4 py-2.5 font-medium">Name</th>
               <th className="px-4 py-2.5 font-medium">Role</th>
-              <th className="px-4 py-2.5 font-medium">Courses completed</th>
+              <th className="px-4 py-2.5 font-medium">Manager</th>
+              <th className="px-4 py-2.5 font-medium">Courses</th>
             </tr>
           </thead>
           <tbody>
@@ -53,17 +76,18 @@ export default async function PeoplePage() {
                   </div>
                 </td>
                 <td className="px-4 py-2.5">
-                  {isAdmin ? (
-                    <RoleSelect
-                      userId={r.id}
-                      role={r.role}
-                      disabled={r.id === user.id}
-                    />
-                  ) : (
-                    <Badge variant="secondary" className="capitalize">
-                      {r.role}
-                    </Badge>
-                  )}
+                  <RoleSelect
+                    userId={r.id}
+                    role={r.role}
+                    disabled={r.id === currentUserId}
+                  />
+                </td>
+                <td className="px-4 py-2.5">
+                  <ManagerSelect
+                    userId={r.id}
+                    managerId={r.managerId}
+                    options={managerOptions.filter((o) => o.id !== r.id)}
+                  />
                 </td>
                 <td className="text-muted-foreground px-4 py-2.5">
                   {r.completed} of {r.assigned}
@@ -73,6 +97,59 @@ export default async function PeoplePage() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+async function ManagerPeople({ managerId }: { managerId: string }) {
+  const reports = await listReports(managerId);
+  const rows = await withStats(reports);
+
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">Your team</h1>
+      <p className="text-muted-foreground mt-1 text-sm">
+        People who report to you and their training progress.
+      </p>
+
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground mt-6 text-sm">
+          No one reports to you yet. An admin sets reporting lines on the
+          People page.
+        </p>
+      ) : (
+        <div className="mt-6 overflow-hidden rounded-md border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-muted-foreground bg-muted/50 text-left">
+                <th className="px-4 py-2.5 font-medium">Name</th>
+                <th className="px-4 py-2.5 font-medium">Role</th>
+                <th className="px-4 py-2.5 font-medium">Courses completed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-t">
+                  <td className="px-4 py-2.5">
+                    <div className="font-medium">{r.name ?? r.email}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {r.email}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <Badge variant="secondary" className="capitalize">
+                      {r.role}
+                    </Badge>
+                  </td>
+                  <td className="text-muted-foreground px-4 py-2.5">
+                    {r.completed} of {r.assigned}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

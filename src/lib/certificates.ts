@@ -106,3 +106,24 @@ export async function listOrgCertificates(orgId: string) {
     .where(eq(schema.courses.orgId, orgId))
     .orderBy(schema.certificates.expiresAt);
 }
+
+/** Certificates held by a manager's direct reports — the team compliance view. */
+export async function listTeamCertificates(managerId: string) {
+  if (!isUuid(managerId)) return [];
+  return db
+    .select({
+      userName: schema.users.name,
+      userEmail: schema.users.email,
+      courseTitle: schema.courses.title,
+      issuedAt: schema.certificates.issuedAt,
+      expiresAt: schema.certificates.expiresAt,
+    })
+    .from(schema.certificates)
+    .innerJoin(
+      schema.courses,
+      eq(schema.certificates.courseId, schema.courses.id),
+    )
+    .innerJoin(schema.users, eq(schema.certificates.userId, schema.users.id))
+    .where(eq(schema.users.managerId, managerId))
+    .orderBy(schema.certificates.expiresAt);
+}
