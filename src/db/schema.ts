@@ -83,6 +83,8 @@ export const lessons = pgTable("lessons", {
   // Rich-text JSON; video embeds reference objects in the storage adapter.
   content: jsonb("content"),
   position: integer("position").notNull().default(0),
+  // Embedding vector (number[]) of the lesson, for the AI tutor's retrieval.
+  embedding: jsonb("embedding"),
 });
 
 export const enrollments = pgTable(

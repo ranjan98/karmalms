@@ -1,6 +1,7 @@
 import {
   BedrockRuntimeClient,
   ConverseCommand,
+  InvokeModelCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 import { config } from "@/lib/config";
 import type { LlmProvider, ChatMessage, CompleteOptions } from "../types";
@@ -52,9 +53,22 @@ export const bedrockProvider: LlmProvider = {
     return res.output?.message?.content?.[0]?.text ?? "";
   },
 
-  async embed(): Promise<number[][]> {
-    throw new Error(
-      "Embeddings are not implemented yet (planned for the AI tutor).",
-    );
+  async embed(texts: string[]): Promise<number[][]> {
+    const out: number[][] = [];
+    for (const text of texts) {
+      const res = await bedrock().send(
+        new InvokeModelCommand({
+          modelId: config.llm.bedrock.embedModelId,
+          contentType: "application/json",
+          accept: "application/json",
+          body: JSON.stringify({ inputText: text }),
+        }),
+      );
+      const parsed = JSON.parse(new TextDecoder().decode(res.body)) as {
+        embedding: number[];
+      };
+      out.push(parsed.embedding);
+    }
+    return out;
   },
 };

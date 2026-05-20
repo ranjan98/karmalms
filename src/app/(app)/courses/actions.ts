@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth";
 import { getCourse, getLesson, isUuid, listLessons } from "@/lib/courses";
 import { getEnrollment, markCourseCompletion } from "@/lib/enrollments";
 import { getQuiz } from "@/lib/quizzes";
+import { rebuildTutorIndex } from "@/lib/tutor";
 
 /** Course authoring is admin-only. */
 async function requireAdmin() {
@@ -308,5 +309,16 @@ export async function retakeCourse(formData: FormData): Promise<void> {
 
   // Recomputes completion (now incomplete) — which also revokes the cert.
   await markCourseCompletion(user.id, courseId);
+  revalidatePath(`/courses/${courseId}`);
+}
+
+/** Re-embeds the course's lessons so the AI tutor can answer from them. */
+export async function rebuildAiTutor(formData: FormData): Promise<void> {
+  const user = await requireAdmin();
+  const courseId = field(formData, "courseId");
+  const course = await getCourse(courseId, user.orgId);
+  if (!course) throw new Error("Course not found.");
+
+  await rebuildTutorIndex(courseId);
   revalidatePath(`/courses/${courseId}`);
 }

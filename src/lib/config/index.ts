@@ -81,11 +81,13 @@ export const config = {
     bedrock: {
       region: env("BEDROCK_REGION", "us-east-1"),
       modelId: env("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6"),
+      embedModelId: env("BEDROCK_EMBED_MODEL_ID", "amazon.titan-embed-text-v2:0"),
     },
     openai: {
       apiKey: env("OPENAI_API_KEY"),
       baseUrl: env("OPENAI_BASE_URL", "https://api.openai.com/v1"),
       model: env("OPENAI_MODEL", "gpt-4o"),
+      embedModel: env("OPENAI_EMBED_MODEL", "text-embedding-3-small"),
     },
   },
 } as const;

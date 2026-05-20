@@ -32,6 +32,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/confirm-button";
+import { TutorChat } from "@/components/tutor-chat";
 import {
   updateCourse,
   deleteCourse,
@@ -41,6 +42,7 @@ import {
   assignCourse,
   unassignCourse,
   retakeCourse,
+  rebuildAiTutor,
 } from "../actions";
 
 type Course = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
@@ -165,11 +167,19 @@ async function AdminCourse({
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Lessons</h2>
         {llm.enabled && (
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`/courses/${course.id}/generate`}>
-              <Sparkles /> Generate with AI
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/courses/${course.id}/generate`}>
+                <Sparkles /> Generate with AI
+              </Link>
+            </Button>
+            <form action={rebuildAiTutor}>
+              <input type="hidden" name="courseId" value={course.id} />
+              <Button type="submit" variant="ghost" size="sm">
+                Rebuild AI tutor
+              </Button>
+            </form>
+          </div>
         )}
       </div>
       <form action={createLesson} className="mt-3 flex items-end gap-2">
@@ -445,6 +455,18 @@ async function LearnerCourse({
       >
         Open the course quiz →
       </Link>
+
+      {llm.enabled && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">Ask the AI tutor</h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Answers come only from this course&apos;s lessons.
+          </p>
+          <div className="mt-3">
+            <TutorChat courseId={course.id} />
+          </div>
+        </div>
+      )}
     </>
   );
 }

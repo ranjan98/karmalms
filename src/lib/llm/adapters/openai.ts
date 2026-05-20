@@ -42,9 +42,22 @@ export const openaiProvider: LlmProvider = {
     return data.choices?.[0]?.message?.content ?? "";
   },
 
-  async embed(): Promise<number[][]> {
-    throw new Error(
-      "Embeddings are not implemented yet (planned for the AI tutor).",
-    );
+  async embed(texts: string[]): Promise<number[][]> {
+    const { baseUrl, apiKey, embedModel } = config.llm.openai;
+    const res = await fetch(`${baseUrl}/embeddings`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model: embedModel, input: texts }),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Embedding request failed (${res.status}): ${await res.text()}`,
+      );
+    }
+    const data = (await res.json()) as { data?: { embedding: number[] }[] };
+    return (data.data ?? []).map((d) => d.embedding);
   },
 };
