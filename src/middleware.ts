@@ -2,7 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session-token";
 
 /** Paths reachable without a session. */
-const PUBLIC_PREFIXES = ["/login", "/api/auth", "/api/health"];
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/api/auth",
+  "/api/health",
+  "/api/assets",
+];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PREFIXES.some(

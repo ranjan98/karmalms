@@ -29,6 +29,16 @@ export function safeColor(value: unknown, fallback: string): string {
     : fallback;
 }
 
+/**
+ * A stored asset value is either a full URL / absolute path (an env default)
+ * or a storage key for a file an admin uploaded. Keys are served back through
+ * the /api/assets route.
+ */
+function toAssetUrl(value: string): string {
+  if (value.startsWith("/") || value.startsWith("http")) return value;
+  return `/api/assets/${value}`;
+}
+
 function defaults(): OrgBranding {
   return {
     primaryColor: safeColor(config.brand.primaryColor, "#6366f1"),
@@ -55,9 +65,13 @@ export async function getBranding(orgId?: string): Promise<OrgBranding> {
 
   return {
     primaryColor: safeColor(stored.primaryColor, base.primaryColor),
-    logoLight: stored.logoLight || base.logoLight,
-    logoDark: stored.logoDark || base.logoDark,
-    bannerLight: stored.bannerLight || base.bannerLight,
-    bannerDark: stored.bannerDark || base.bannerDark,
+    logoLight: stored.logoLight ? toAssetUrl(stored.logoLight) : base.logoLight,
+    logoDark: stored.logoDark ? toAssetUrl(stored.logoDark) : base.logoDark,
+    bannerLight: stored.bannerLight
+      ? toAssetUrl(stored.bannerLight)
+      : base.bannerLight,
+    bannerDark: stored.bannerDark
+      ? toAssetUrl(stored.bannerDark)
+      : base.bannerDark,
   };
 }

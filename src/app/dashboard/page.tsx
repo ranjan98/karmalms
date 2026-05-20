@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth, requireUser } from "@/lib/auth";
 import { getBranding } from "@/lib/branding";
 import { config } from "@/lib/config";
@@ -27,6 +28,11 @@ export default async function DashboardPage() {
           className="h-7 w-auto"
         />
         <div className="flex items-center gap-2">
+          {user.role === "admin" && (
+            <Button asChild variant="ghost">
+              <Link href="/admin/settings">Settings</Link>
+            </Button>
+          )}
           <ThemeToggle />
           <form action="/api/auth/logout" method="post">
             <Button type="submit" variant="outline">
