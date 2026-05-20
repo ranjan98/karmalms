@@ -1,13 +1,27 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  Trash2,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getCourse, listLessons } from "@/lib/courses";
+import {
+  listCourseEnrollments,
+  listOrgUsers,
+  completionCounts,
+  getEnrollment,
+  courseProgress,
+} from "@/lib/enrollments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { ProgressBar } from "@/components/progress-bar";
 import {
   Card,
   CardHeader,
@@ -22,6 +36,8 @@ import {
   createLesson,
   deleteLesson,
   moveLesson,
+  assignCourse,
+  unassignCourse,
 } from "../actions";
 
 type Course = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
@@ -53,13 +69,30 @@ export default async function CoursePage({
       {isAdmin ? (
         <AdminCourse course={course} lessons={lessons} />
       ) : (
-        <LearnerCourse course={course} lessons={lessons} />
+        <LearnerCourse
+          course={course}
+          lessons={lessons}
+          userId={user.id}
+        />
       )}
     </div>
   );
 }
 
-function AdminCourse({ course, lessons }: { course: Course; lessons: Lesson[] }) {
+async function AdminCourse({
+  course,
+  lessons,
+}: {
+  course: Course;
+  lessons: Lesson[];
+}) {
+  const enrollments = await listCourseEnrollments(course.id);
+  const orgUsers = await listOrgUsers(course.orgId);
+  const counts = await completionCounts(lessons.map((l) => l.id));
+
+  const enrolledIds = new Set(enrollments.map((e) => e.userId));
+  const unassigned = orgUsers.filter((u) => !enrolledIds.has(u.id));
+
   return (
     <>
       <div className="mt-3 flex items-center gap-2">
@@ -190,6 +223,79 @@ function AdminCourse({ course, lessons }: { course: Course; lessons: Lesson[] })
         ))}
       </div>
 
+      <h2 className="mt-8 text-lg font-semibold">People</h2>
+      <p className="text-muted-foreground mt-1 text-sm">
+        Assign this course and track who has completed it.
+      </p>
+
+      {unassigned.length > 0 ? (
+        <form action={assignCourse} className="mt-3 flex items-end gap-2">
+          <input type="hidden" name="courseId" value={course.id} />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <Label htmlFor="assignUser">Assign a person</Label>
+            <select
+              id="assignUser"
+              name="userId"
+              required
+              className="border-input h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs outline-none"
+            >
+              {unassigned.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name ?? u.email} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button type="submit">Assign</Button>
+        </form>
+      ) : (
+        <p className="text-muted-foreground mt-3 text-sm">
+          Everyone in your organization is assigned.
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-col gap-2">
+        {enrollments.length === 0 && (
+          <p className="text-muted-foreground text-sm">No one assigned yet.</p>
+        )}
+        {enrollments.map((e) => {
+          const done = counts.get(e.userId) ?? 0;
+          return (
+            <div
+              key={e.userId}
+              className="flex items-center gap-3 rounded-md border px-3 py-2"
+            >
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {e.userName ?? e.userEmail}
+                </p>
+                <p className="text-muted-foreground text-xs">{e.userEmail}</p>
+              </div>
+              {e.completedAt ? (
+                <Badge>Completed</Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">
+                  {done} / {lessons.length} lessons
+                </span>
+              )}
+              <form action={unassignCourse}>
+                <input type="hidden" name="courseId" value={course.id} />
+                <input type="hidden" name="userId" value={e.userId} />
+                <ConfirmButton
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Unassign"
+                  confirmText={`Remove ${e.userName ?? e.userEmail} from this course?`}
+                >
+                  <Trash2 />
+                </ConfirmButton>
+              </form>
+            </div>
+          );
+        })}
+      </div>
+
       <Card className="border-destructive/40 mt-8">
         <CardHeader>
           <CardTitle className="text-base">Delete course</CardTitle>
@@ -214,13 +320,21 @@ function AdminCourse({ course, lessons }: { course: Course; lessons: Lesson[] })
   );
 }
 
-function LearnerCourse({
+async function LearnerCourse({
   course,
   lessons,
+  userId,
 }: {
   course: Course;
   lessons: Lesson[];
+  userId: string;
 }) {
+  const enrollment = await getEnrollment(userId, course.id);
+  const { completed, completedLessonIds } = await courseProgress(
+    userId,
+    course.id,
+  );
+
   return (
     <>
       <h1 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -230,6 +344,22 @@ function LearnerCourse({
         <p className="text-muted-foreground mt-2">{course.description}</p>
       )}
 
+      {enrollment && (
+        <div className="mt-5">
+          <div className="flex items-center gap-2">
+            <ProgressBar
+              value={completed}
+              total={lessons.length}
+              className="max-w-xs"
+            />
+            <span className="text-muted-foreground text-xs">
+              {completed} / {lessons.length}
+            </span>
+            {enrollment.completedAt && <Badge>Completed</Badge>}
+          </div>
+        </div>
+      )}
+
       <h2 className="mt-8 text-lg font-semibold">Lessons</h2>
       <div className="mt-3 flex flex-col gap-2">
         {lessons.length === 0 && (
@@ -237,18 +367,27 @@ function LearnerCourse({
             No lessons in this course yet.
           </p>
         )}
-        {lessons.map((lesson, i) => (
-          <Link
-            key={lesson.id}
-            href={`/courses/${course.id}/lessons/${lesson.id}`}
-            className="hover:border-primary flex items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition-colors"
-          >
-            <span className="text-muted-foreground w-5 tabular-nums">
-              {i + 1}
-            </span>
-            <span className="font-medium">{lesson.title}</span>
-          </Link>
-        ))}
+        {lessons.map((lesson, i) => {
+          const isDone = completedLessonIds.has(lesson.id);
+          return (
+            <Link
+              key={lesson.id}
+              href={`/courses/${course.id}/lessons/${lesson.id}`}
+              className="hover:border-primary flex items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition-colors"
+            >
+              {enrollment &&
+                (isDone ? (
+                  <CheckCircle2 className="text-primary size-4" />
+                ) : (
+                  <Circle className="text-muted-foreground size-4" />
+                ))}
+              <span className="text-muted-foreground w-5 tabular-nums">
+                {i + 1}
+              </span>
+              <span className="font-medium">{lesson.title}</span>
+            </Link>
+          );
+        })}
       </div>
     </>
   );
