@@ -1,0 +1,118 @@
+/**
+ * KarmaLMS database schema.
+ *
+ * Design notes for self-hosting companies:
+ * - `users` stores NO passwords. Identity lives in your IdP (Cognito/Okta/your
+ *   portal). A user row is just an external id + email + role, provisioned on
+ *   first login (JIT). See src/lib/auth.
+ * - Everything is scoped to an `org` so the same instance can host multiple
+ *   business units if needed.
+ */
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  integer,
+  boolean,
+  jsonb,
+  pgEnum,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+
+export const userRole = pgEnum("user_role", ["admin", "manager", "learner"]);
+
+export const orgs = pgTable("orgs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    // Stable id from the external identity provider (sub claim, SAML nameID...).
+    externalId: text("external_id").notNull(),
+    email: text("email").notNull(),
+    name: text("name"),
+    role: userRole("role").notNull().default("learner"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    // One identity per org. JIT provisioning upserts on this.
+    extIdx: uniqueIndex("users_org_external_idx").on(t.orgId, t.externalId),
+  }),
+);
+
+export const courses = pgTable("courses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id")
+    .notNull()
+    .references(() => orgs.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  published: boolean("published").notNull().default(false),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const lessons = pgTable("lessons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .references(() => courses.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  // Rich-text JSON; video embeds reference objects in the storage adapter.
+  content: jsonb("content"),
+  position: integer("position").notNull().default(0),
+});
+
+export const enrollments = pgTable(
+  "enrollments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    assignedAt: timestamp("assigned_at").notNull().defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (t) => ({
+    uniq: uniqueIndex("enrollments_user_course_idx").on(t.userId, t.courseId),
+  }),
+);
+
+export const lessonProgress = pgTable(
+  "lesson_progress",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    completedAt: timestamp("completed_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    uniq: uniqueIndex("lesson_progress_user_lesson_idx").on(
+      t.userId,
+      t.lessonId,
+    ),
+  }),
+);
+
+/**
+ * v0.2 — certifications with expiry. Kept here as the schema seam so the
+ * differentiating feature (compliance tracking + lapse reminders) slots in
+ * without a migration rethink.
+ */
+// export const certifications = pgTable("certifications", { ... });

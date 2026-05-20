@@ -1,0 +1,66 @@
+# Local stack: `docker compose up` gives a fully working KarmaLMS with a
+# Postgres (pgvector) database and a MinIO S3 — no AWS account needed to try it.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: karmalms
+      POSTGRES_PASSWORD: karmalms
+      POSTGRES_DB: karmalms
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U karmalms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Stand-in for AWS S3 in local dev. In production you use real S3 instead.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # Creates the bucket once MinIO is up, then exits.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done;
+      mc mb -p local/karmalms;
+      exit 0;
+      "
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgres://karmalms:karmalms@db:5432/karmalms
+      AUTH_MODE: oidc
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: karmalms
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      LLM_MODE: none
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:
+  minio_data:

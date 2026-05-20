@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KarmaLMS — Open-source LMS for corporate training</title>
+    <meta
+      name="description"
+      content="KarmaLMS is an open-source, AWS-native, AI-native LMS built for corporate onboarding and compliance training. Self-host it, plug in your own auth and storage, customize freely."
+    />
+    <meta property="og:title" content="KarmaLMS — Open-source LMS for corporate training" />
+    <meta
+      property="og:description"
+      content="AWS-native, AI-native, self-hosted LMS for corporate training. Bring your own auth, storage, and AI."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="nav">
+      <span class="logo">KarmaLMS</span>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#adapters">Adapters</a>
+        <a href="#start">Get started</a>
+        <a class="btn btn-ghost" href="https://github.com/ranjan98/karmalms">GitHub ★</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">Open source · MIT licensed</p>
+        <h1>The LMS built for <span>corporate training</span> — not classrooms.</h1>
+        <p class="sub">
+          Self-hosted on your own AWS. Plug in your identity provider, your S3,
+          and your AI. Onboarding paths, compliance tracking, manager
+          dashboards — and yours to customize without a fork.
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href="https://github.com/ranjan98/karmalms">Star on GitHub</a>
+          <a class="btn btn-ghost" href="#start">Quickstart →</a>
+        </div>
+        <pre class="code">git clone https://github.com/ranjan98/karmalms
+cd karmalms &amp;&amp; cp .env.example .env
+docker compose up</pre>
+      </section>
+
+      <section id="features" class="band">
+        <h2>Why KarmaLMS</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Built for companies</h3>
+            <p>Onboarding paths assigned by role and start date — not semesters and gradebooks.</p>
+          </div>
+          <div class="card">
+            <h3>Compliance tracking</h3>
+            <p>Certifications with expiry dates and automatic reminders when they lapse.</p>
+          </div>
+          <div class="card">
+            <h3>Manager dashboards</h3>
+            <p>See who on your team is overdue, at a glance.</p>
+          </div>
+          <div class="card">
+            <h3>AI-native</h3>
+            <p>Paste a doc — get drafted lessons and a quiz. An AI tutor grounded in your content.</p>
+          </div>
+          <div class="card">
+            <h3>Runs on your cloud</h3>
+            <p>Your AWS account, your VPC, your data. One <code>docker compose up</code> to try it.</p>
+          </div>
+          <div class="card">
+            <h3>Customize, don't fork</h3>
+            <p>Branding, theming, and a replaceable login page — all config-driven.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="adapters" class="band alt">
+        <h2>Bring your own everything</h2>
+        <p class="lead">
+          Three pluggable adapters. The app depends only on the interfaces, so
+          swapping a provider is a config change — never a code change.
+        </p>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Auth</h3>
+            <p>OIDC (Cognito, Okta, Azure AD), SAML, or <em>trusted-JWT</em> — append KarmaLMS to your existing portal session. KarmaLMS never stores passwords.</p>
+          </div>
+          <div class="card">
+            <h3>Storage</h3>
+            <p>Any S3-compatible store — AWS S3, MinIO, Cloudflare R2 — via a configurable endpoint.</p>
+          </div>
+          <div class="card">
+            <h3>AI</h3>
+            <p>AWS Bedrock (inference inside your own account), an OpenAI-compatible API, or none.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="start" class="band">
+        <h2>Get started</h2>
+        <ol class="steps">
+          <li>Clone the repo and copy <code>.env.example</code> to <code>.env</code>.</li>
+          <li>Run <code>docker compose up</code> — app, Postgres, and MinIO, no AWS account needed.</li>
+          <li>Open <code>localhost:3000</code> and start building courses.</li>
+        </ol>
+        <a class="btn btn-primary" href="https://github.com/ranjan98/karmalms">Go to the repository</a>
+      </section>
+    </main>
+
+    <footer>
+      <p>KarmaLMS — MIT licensed. Built by the open-source community.</p>
+      <p><a href="https://github.com/ranjan98/karmalms">GitHub</a></p>
+    </footer>
+  </body>
+</html>
