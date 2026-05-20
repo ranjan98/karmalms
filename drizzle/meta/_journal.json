@@ -50,6 +50,13 @@
       "when": 1779311547403,
       "tag": "0006_windy_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779312040328,
+      "tag": "0007_futuristic_deadpool",
+      "breakpoints": true
     }
   ]
 }

@@ -24,6 +24,16 @@ export const config = {
     webhookUrl: env("NOTIFICATIONS_WEBHOOK_URL"),
   },
 
+  // Directory sync — pull employees from an HRIS. mode: none | bamboohr
+  directory: {
+    mode: env("DIRECTORY_MODE", "none"),
+    orgSlug: env("DIRECTORY_ORG_SLUG", "default"),
+    bamboohr: {
+      subdomain: env("BAMBOOHR_SUBDOMAIN"),
+      apiKey: env("BAMBOOHR_API_KEY"),
+    },
+  },
+
   // Branding defaults — the fallback when an org has set nothing in-app.
   brand: {
     name: env("BRAND_NAME", "KarmaLMS"),

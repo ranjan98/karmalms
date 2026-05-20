@@ -49,6 +49,8 @@ export const users = pgTable(
     managerId: uuid("manager_id").references((): AnyPgColumn => users.id, {
       onDelete: "set null",
     }),
+    // Department, populated by an HRIS directory sync (e.g. BambooHR).
+    department: text("department"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
