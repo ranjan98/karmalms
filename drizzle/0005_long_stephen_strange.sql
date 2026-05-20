@@ -1,0 +1,1 @@
+ALTER TABLE "certificates" ADD COLUMN "reminder_sent_at" timestamp;

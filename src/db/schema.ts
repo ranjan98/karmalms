@@ -177,6 +177,8 @@ export const certificates = pgTable(
       .references(() => courses.id, { onDelete: "cascade" }),
     issuedAt: timestamp("issued_at").notNull().defaultNow(),
     expiresAt: timestamp("expires_at").notNull(),
+    // Set once a lapse reminder has been sent for this certificate.
+    reminderSentAt: timestamp("reminder_sent_at"),
   },
   (t) => ({
     uniq: uniqueIndex("certificates_user_course_idx").on(

@@ -15,6 +15,15 @@ export const config = {
   appUrl: env("APP_URL", "http://localhost:3000"),
   databaseUrl: env("DATABASE_URL"),
 
+  // Bearer token guarding /api/cron/* — unset means those endpoints are off.
+  cronSecret: env("CRON_SECRET"),
+
+  // Notifications (e.g. certification reminders) are always logged, and also
+  // POSTed to this webhook when set — wire it to email, Slack, automation.
+  notifications: {
+    webhookUrl: env("NOTIFICATIONS_WEBHOOK_URL"),
+  },
+
   // Branding defaults — the fallback when an org has set nothing in-app.
   brand: {
     name: env("BRAND_NAME", "KarmaLMS"),
