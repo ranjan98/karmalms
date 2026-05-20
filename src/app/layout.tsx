@@ -14,10 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* Brand color is injected as a CSS variable — themeable without a fork. */}
-      <body style={{ ["--brand" as string]: config.brand.primaryColor }}>
-        {children}
-      </body>
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }

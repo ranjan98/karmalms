@@ -59,7 +59,8 @@ Local development without Docker:
 
 ```bash
 npm install
-npm run db:push      # apply the schema
+npm run db:migrate   # apply the schema
+npm run db:seed      # load a demo org (optional)
 npm run dev
 ```
 

@@ -1,41 +1,84 @@
+import Link from "next/link";
+import { KeyRound, HardDrive, Sparkles, ArrowRight } from "lucide-react";
 import { config } from "@/lib/config";
 import { auth } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import { llm } from "@/lib/llm";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 
 /**
- * Placeholder home page — confirms the skeleton boots and shows which adapters
- * are wired up. Replace with the real dashboard as features land.
+ * Placeholder home page — confirms the foundation boots and shows which
+ * adapters are wired up. Replaced by the real dashboard once auth lands.
  */
 export default function Home() {
   const adapters = [
-    { label: "Auth", value: auth.name },
-    { label: "Storage", value: storage.name },
-    { label: "LLM", value: llm.enabled ? llm.name : "disabled" },
+    {
+      icon: KeyRound,
+      label: "Auth",
+      value: auth.name,
+      desc: "Identity provider adapter",
+    },
+    {
+      icon: HardDrive,
+      label: "Storage",
+      value: storage.name,
+      desc: "Object storage adapter",
+    },
+    {
+      icon: Sparkles,
+      label: "LLM",
+      value: llm.enabled ? llm.name : "disabled",
+      desc: "AI provider adapter",
+    },
   ];
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "4rem 1.5rem" }}>
-      <h1 style={{ fontSize: "2rem" }}>{config.brand.name}</h1>
-      <p style={{ opacity: 0.7, marginTop: ".5rem" }}>
-        Open-source LMS for corporate training — skeleton is running.
+    <main className="mx-auto max-w-3xl px-6 py-20">
+      <p className="text-primary text-sm font-semibold tracking-wide uppercase">
+        {config.brand.name}
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+        Foundation is running
+      </h1>
+      <p className="text-muted-foreground mt-3">
+        Open-source LMS for corporate training. Tailwind, the UI kit, and the
+        database layer are in place — active adapters below.
       </p>
 
-      <h2 style={{ fontSize: "1rem", marginTop: "2rem", opacity: 0.6 }}>
-        Active adapters
-      </h2>
-      <ul style={{ listStyle: "none", marginTop: ".5rem" }}>
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {adapters.map((a) => (
-          <li key={a.label} style={{ padding: ".35rem 0" }}>
-            <strong>{a.label}:</strong> <code>{a.value}</code>
-          </li>
+          <Card key={a.label}>
+            <CardHeader>
+              <a.icon className="text-primary size-5" />
+              <CardTitle className="mt-2 text-base">{a.label}</CardTitle>
+              <CardDescription>{a.desc}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <code className="bg-muted rounded px-2 py-1 text-sm">
+                {a.value}
+              </code>
+            </CardContent>
+          </Card>
         ))}
-      </ul>
+      </div>
 
-      <p style={{ marginTop: "2rem", opacity: 0.5, fontSize: ".9rem" }}>
-        Next: build the course → assign → complete → report loop. See the
-        roadmap in README.md.
-      </p>
+      <div className="mt-10 flex flex-wrap items-center gap-3">
+        <Button asChild>
+          <Link href="https://github.com/ranjan98/karmalms">
+            View on GitHub <ArrowRight />
+          </Link>
+        </Button>
+        <span className="text-muted-foreground text-sm">
+          Next: auth, app shell, and the course loop.
+        </span>
+      </div>
     </main>
   );
 }
