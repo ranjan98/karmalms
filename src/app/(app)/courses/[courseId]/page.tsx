@@ -6,9 +6,11 @@ import {
   Trash2,
   CheckCircle2,
   Circle,
+  Sparkles,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getCourse, listLessons } from "@/lib/courses";
+import { llm } from "@/lib/llm";
 import {
   listCourseEnrollments,
   listOrgUsers,
@@ -160,7 +162,16 @@ async function AdminCourse({
         </CardContent>
       </Card>
 
-      <h2 className="mt-8 text-lg font-semibold">Lessons</h2>
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Lessons</h2>
+        {llm.enabled && (
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/courses/${course.id}/generate`}>
+              <Sparkles /> Generate with AI
+            </Link>
+          </Button>
+        )}
+      </div>
       <form action={createLesson} className="mt-3 flex items-end gap-2">
         <input type="hidden" name="courseId" value={course.id} />
         <div className="flex flex-1 flex-col gap-1.5">

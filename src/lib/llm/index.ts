@@ -1,6 +1,7 @@
 import { config } from "@/lib/config";
 import type { LlmProvider, ChatMessage } from "./types";
 import { bedrockProvider } from "./adapters/bedrock";
+import { openaiProvider } from "./adapters/openai";
 
 /** A no-op provider so the app runs fine with AI switched off. */
 const disabledProvider: LlmProvider = {
@@ -19,8 +20,7 @@ function resolveProvider(): LlmProvider {
     case "bedrock":
       return bedrockProvider;
     case "openai":
-      // TODO(v0.2): OpenAI-compatible adapter.
-      throw new Error("OpenAI adapter not yet implemented");
+      return openaiProvider;
     case "none":
     default:
       return disabledProvider;
