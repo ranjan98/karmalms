@@ -88,12 +88,12 @@ Next.js (App Router, TypeScript)  ──  one deployable
 
 ## Roadmap
 
-| Version | Focus |
-|---|---|
-| **v0.1** | Core loop: create course → assign → learner completes → admin sees progress. OIDC + trusted-JWT auth, S3 storage, `docker compose up`. |
-| **v0.2** | **Certifications with expiry + lapse reminders** (the headline feature). **AI course authoring** — paste a doc → drafted lessons + quiz. |
-| **v0.3** | AI tutor (RAG grounded in course content), webhooks, REST API tokens, SAML adapter. |
-| **Later** | SCIM provisioning, analytics, plugin hook system, theming marketplace. |
+| Version | Focus | Status |
+|---|---|---|
+| **v0.1** | Course authoring → publish → assign → learners complete lessons → quizzes gate completion → manager reporting. OIDC + trusted-JWT SSO, S3 storage, light/dark theming, in-app company branding, `docker compose up`. | ✅ Built |
+| **v0.2** | **Certifications with expiry + lapse reminders** (the headline feature). **AI course authoring** — paste a doc → drafted lessons + quiz. | Planned |
+| **v0.3** | AI tutor (RAG grounded in course content), webhooks, REST API tokens, SAML adapter. | Planned |
+| **Later** | SCIM provisioning, analytics, plugin hook system, theming marketplace. | Planned |
 
 See [open issues](https://github.com/ranjan98/karmalms/issues) and
 [`good first issue`](https://github.com/ranjan98/karmalms/labels/good%20first%20issue).

@@ -34,6 +34,13 @@ export const config = {
       issuerUrl: env("OIDC_ISSUER_URL"),
       clientId: env("OIDC_CLIENT_ID"),
       clientSecret: env("OIDC_CLIENT_SECRET"),
+      scopes: env("OIDC_SCOPES", "openid email profile"),
+      orgSlug: env("OIDC_ORG_SLUG", "default"),
+      // Emails granted the admin role on first sign-in (comma-separated).
+      adminEmails: env("OIDC_ADMIN_EMAILS")
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
     },
     jwt: {
       jwksUrl: env("JWT_JWKS_URL"),

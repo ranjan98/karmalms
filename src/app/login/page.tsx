@@ -24,7 +24,6 @@ export default async function LoginPage({
   // Already signed in — skip the login page.
   if (await getCurrentUser()) redirect(returnTo);
 
-  const devMode = config.auth.mode === "dev";
   const branding = await getBranding();
 
   return (
@@ -45,15 +44,17 @@ export default async function LoginPage({
             Sign in to {config.brand.name}
           </CardTitle>
           <CardDescription>
-            {devMode
+            {config.auth.mode === "dev"
               ? "Development mode — choose a demo account."
-              : "Continue with your organization's identity provider."}
+              : config.auth.mode === "oidc"
+                ? "Continue with your organization's identity provider."
+                : "Sign in through your company portal."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {devMode ? (
+          {config.auth.mode === "dev" ? (
             <DevLogin returnTo={returnTo} />
-          ) : (
+          ) : config.auth.mode === "oidc" ? (
             <Button asChild className="w-full">
               <a
                 href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
@@ -61,6 +62,11 @@ export default async function LoginPage({
                 Sign in with SSO
               </a>
             </Button>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Sign-in is handled by your company portal — open KarmaLMS from
+              there.
+            </p>
           )}
         </CardContent>
       </Card>
