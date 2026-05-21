@@ -70,7 +70,10 @@ async function AdminPeople({
             {rows.map((r) => (
               <tr key={r.id} className="border-t">
                 <td className="px-4 py-2.5">
-                  <div className="font-medium">{r.name ?? r.email}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{r.name ?? r.email}</span>
+                    {!r.active && <Badge variant="secondary">Inactive</Badge>}
+                  </div>
                   <div className="text-muted-foreground text-xs">
                     {r.email}
                   </div>

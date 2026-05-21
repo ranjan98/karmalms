@@ -64,6 +64,13 @@
       "when": 1779312478856,
       "tag": "0008_omniscient_whiplash",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779339349974,
+      "tag": "0009_rare_ego",
+      "breakpoints": true
     }
   ]
 }

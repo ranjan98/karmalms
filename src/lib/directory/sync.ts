@@ -6,7 +6,7 @@
  * (e.g. from an SSO login) is updated rather than duplicated. New users start
  * as learners; an admin promotes them.
  */
-import { and, eq } from "drizzle-orm";
+import { and, eq, like, notInArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { config } from "@/lib/config";
 import { directory } from "@/lib/directory";
@@ -54,7 +54,11 @@ export async function syncDirectory(): Promise<{
     if (existing) {
       await db
         .update(schema.users)
-        .set({ name: emp.name, department: emp.department ?? null })
+        .set({
+          name: emp.name,
+          department: emp.department ?? null,
+          active: true,
+        })
         .where(eq(schema.users.id, existing.id));
       idToUser.set(emp.externalId, existing.id);
     } else {
@@ -86,6 +90,21 @@ export async function syncDirectory(): Promise<{
         .where(eq(schema.users.id, userId));
       managersLinked += 1;
     }
+  }
+
+  // Offboarding — deactivate directory-sourced users no longer in the feed.
+  const seenIds = [...idToUser.values()];
+  if (seenIds.length > 0) {
+    await db
+      .update(schema.users)
+      .set({ active: false })
+      .where(
+        and(
+          eq(schema.users.orgId, org.id),
+          like(schema.users.externalId, "bamboohr:%"),
+          notInArray(schema.users.id, seenIds),
+        ),
+      );
   }
 
   return { synced: idToUser.size, managersLinked };

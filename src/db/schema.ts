@@ -51,6 +51,8 @@ export const users = pgTable(
     }),
     // Department, populated by an HRIS directory sync (e.g. BambooHR).
     department: text("department"),
+    // Cleared by a directory sync when someone leaves — blocks sign-in.
+    active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
