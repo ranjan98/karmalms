@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import {
   listUserEnrollments,
-  courseProgress,
+  progressForCourses,
+  enrollmentCountsByUser,
   listCourseCompletion,
   listOrgUsers,
   listReports,
@@ -59,12 +60,14 @@ async function LearnerDashboard({ userId }: { userId: string }) {
   const enrollments = (await listUserEnrollments(userId)).filter(
     (e) => e.published,
   );
-  const courses = await Promise.all(
-    enrollments.map(async (e) => {
-      const { total, completed } = await courseProgress(userId, e.courseId);
-      return { ...e, total, completed };
-    }),
+  const progress = await progressForCourses(
+    userId,
+    enrollments.map((e) => e.courseId),
   );
+  const courses = enrollments.map((e) => {
+    const p = progress.get(e.courseId) ?? { total: 0, completed: 0 };
+    return { ...e, total: p.total, completed: p.completed };
+  });
   const completed = courses.filter((c) => c.completedAt).length;
   const inProgress = courses.filter((c) => !c.completedAt);
 
@@ -182,17 +185,16 @@ async function AdminDashboard({ orgId }: { orgId: string }) {
 
 async function ManagerDashboard({ managerId }: { managerId: string }) {
   const reports = await listReports(managerId);
-  const rows = await Promise.all(
-    reports.map(async (r) => {
-      const enrollments = await listUserEnrollments(r.id);
-      return {
-        id: r.id,
-        name: r.name ?? r.email,
-        assigned: enrollments.length,
-        completed: enrollments.filter((e) => e.completedAt).length,
-      };
-    }),
-  );
+  const counts = await enrollmentCountsByUser(reports.map((r) => r.id));
+  const rows = reports.map((r) => {
+    const c = counts.get(r.id) ?? { assigned: 0, completed: 0 };
+    return {
+      id: r.id,
+      name: r.name ?? r.email,
+      assigned: c.assigned,
+      completed: c.completed,
+    };
+  });
 
   const totalAssigned = rows.reduce((s, r) => s + r.assigned, 0);
   const totalCompleted = rows.reduce((s, r) => s + r.completed, 0);

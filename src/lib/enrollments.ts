@@ -220,3 +220,76 @@ export async function listCourseCompletion(orgId: string) {
 
   return [...byCourse.values()];
 }
+
+/**
+ * Assigned/completed enrollment counts per user — one query for any number
+ * of users, replacing per-user lookups in list and dashboard views.
+ */
+export async function enrollmentCountsByUser(
+  userIds: string[],
+): Promise<Map<string, { assigned: number; completed: number }>> {
+  const counts = new Map<string, { assigned: number; completed: number }>();
+  if (userIds.length === 0) return counts;
+
+  const rows = await db
+    .select({
+      userId: schema.enrollments.userId,
+      completedAt: schema.enrollments.completedAt,
+    })
+    .from(schema.enrollments)
+    .where(inArray(schema.enrollments.userId, userIds));
+
+  for (const row of rows) {
+    const entry = counts.get(row.userId) ?? { assigned: 0, completed: 0 };
+    entry.assigned += 1;
+    if (row.completedAt) entry.completed += 1;
+    counts.set(row.userId, entry);
+  }
+  return counts;
+}
+
+/**
+ * Lesson-completion progress for one user across many courses — two queries
+ * total, regardless of the number of courses.
+ */
+export async function progressForCourses(
+  userId: string,
+  courseIds: string[],
+): Promise<Map<string, { total: number; completed: number }>> {
+  const result = new Map<string, { total: number; completed: number }>();
+  for (const id of courseIds) result.set(id, { total: 0, completed: 0 });
+  if (courseIds.length === 0 || !isUuid(userId)) return result;
+
+  const lessons = await db
+    .select({ id: schema.lessons.id, courseId: schema.lessons.courseId })
+    .from(schema.lessons)
+    .where(inArray(schema.lessons.courseId, courseIds));
+
+  const lessonToCourse = new Map<string, string>();
+  for (const lesson of lessons) {
+    lessonToCourse.set(lesson.id, lesson.courseId);
+    const entry = result.get(lesson.courseId);
+    if (entry) entry.total += 1;
+  }
+
+  if (lessons.length > 0) {
+    const done = await db
+      .select({ lessonId: schema.lessonProgress.lessonId })
+      .from(schema.lessonProgress)
+      .where(
+        and(
+          eq(schema.lessonProgress.userId, userId),
+          inArray(
+            schema.lessonProgress.lessonId,
+            lessons.map((l) => l.id),
+          ),
+        ),
+      );
+    for (const row of done) {
+      const courseId = lessonToCourse.get(row.lessonId);
+      const entry = courseId ? result.get(courseId) : undefined;
+      if (entry) entry.completed += 1;
+    }
+  }
+  return result;
+}

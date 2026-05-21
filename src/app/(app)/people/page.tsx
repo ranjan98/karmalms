@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth";
 import {
   listOrgUsers,
   listReports,
-  listUserEnrollments,
+  enrollmentCountsByUser,
 } from "@/lib/enrollments";
 import { Badge } from "@/components/ui/badge";
 import { RoleSelect } from "./role-select";
@@ -12,16 +12,11 @@ import { ManagerSelect } from "./manager-select";
 type OrgUser = Awaited<ReturnType<typeof listOrgUsers>>[number];
 
 async function withStats(users: OrgUser[]) {
-  return Promise.all(
-    users.map(async (u) => {
-      const enrollments = await listUserEnrollments(u.id);
-      return {
-        ...u,
-        assigned: enrollments.length,
-        completed: enrollments.filter((e) => e.completedAt).length,
-      };
-    }),
-  );
+  const counts = await enrollmentCountsByUser(users.map((u) => u.id));
+  return users.map((u) => {
+    const c = counts.get(u.id) ?? { assigned: 0, completed: 0 };
+    return { ...u, assigned: c.assigned, completed: c.completed };
+  });
 }
 
 export default async function PeoplePage() {

@@ -4,7 +4,7 @@
  */
 import {
   listOrgUsers,
-  listUserEnrollments,
+  enrollmentCountsByUser,
   listCourseCompletion,
 } from "@/lib/enrollments";
 import { listOrgCertificates, certStatus } from "@/lib/certificates";
@@ -31,11 +31,12 @@ export async function orgAnalytics(orgId: string): Promise<OrgAnalytics> {
   const courses = await listCourseCompletion(orgId);
   const certs = await listOrgCertificates(orgId);
 
-  // Completion rolled up by department.
+  // Completion rolled up by department — one query for all users.
+  const counts = await enrollmentCountsByUser(users.map((u) => u.id));
   const byDept = new Map<string, DepartmentStat>();
   for (const user of users) {
     const dept = user.department?.trim() || "Unassigned";
-    const enrollments = await listUserEnrollments(user.id);
+    const c = counts.get(user.id) ?? { assigned: 0, completed: 0 };
     const entry = byDept.get(dept) ?? {
       name: dept,
       people: 0,
@@ -43,8 +44,8 @@ export async function orgAnalytics(orgId: string): Promise<OrgAnalytics> {
       completed: 0,
     };
     entry.people += 1;
-    entry.assigned += enrollments.length;
-    entry.completed += enrollments.filter((e) => e.completedAt).length;
+    entry.assigned += c.assigned;
+    entry.completed += c.completed;
     byDept.set(dept, entry);
   }
   const departments = [...byDept.values()].sort((a, b) =>

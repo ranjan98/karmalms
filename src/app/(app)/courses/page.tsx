@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listCourses } from "@/lib/courses";
-import { listUserEnrollments, courseProgress } from "@/lib/enrollments";
+import { listUserEnrollments, progressForCourses } from "@/lib/enrollments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,12 +80,14 @@ async function LearnerCourses({ userId }: { userId: string }) {
   const enrollments = (await listUserEnrollments(userId)).filter(
     (e) => e.published,
   );
-  const courses = await Promise.all(
-    enrollments.map(async (e) => {
-      const { total, completed } = await courseProgress(userId, e.courseId);
-      return { ...e, total, completed };
-    }),
+  const progress = await progressForCourses(
+    userId,
+    enrollments.map((e) => e.courseId),
   );
+  const courses = enrollments.map((e) => {
+    const p = progress.get(e.courseId) ?? { total: 0, completed: 0 };
+    return { ...e, total: p.total, completed: p.completed };
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
