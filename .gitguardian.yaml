@@ -1,0 +1,12 @@
+# GitGuardian configuration.
+#
+# The only credentials in this repo are throwaway test fixtures, never real
+# secrets: the CI workflow's Postgres service container (created fresh per run,
+# localhost-only, destroyed when the job ends) and the HMAC keys used by the
+# webhook integration tests. They are excluded so scans don't flag them.
+version: 2
+
+secret:
+  ignored-paths:
+    - ".github/workflows/ci.yml"
+    - "src/**/*.itest.ts"
