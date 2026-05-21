@@ -227,3 +227,20 @@ export const apiTokens = pgTable("api_tokens", {
   lastUsedAt: timestamp("last_used_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/**
+ * Webhook deliveries — one row per (event, webhook). Doubles as the delivery
+ * log and the retry queue: failed rows are retried by a scheduled job.
+ */
+export const webhookDeliveries = pgTable("webhook_deliveries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  webhookId: uuid("webhook_id")
+    .notNull()
+    .references(() => webhooks.id, { onDelete: "cascade" }),
+  event: text("event").notNull(),
+  payload: jsonb("payload").notNull(),
+  succeeded: boolean("succeeded").notNull().default(false),
+  attempts: integer("attempts").notNull().default(0),
+  lastAttemptAt: timestamp("last_attempt_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

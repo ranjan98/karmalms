@@ -2,12 +2,18 @@
  * Outbound webhooks. An org registers URLs; KarmaLMS POSTs signed event
  * payloads to them when something happens, so external systems (HRIS,
  * Slack, automation) integrate without forking.
+ *
+ * Every delivery is recorded in `webhook_deliveries` — that table is both the
+ * delivery log and the retry queue. Failed deliveries are re-attempted by the
+ * /api/cron/webhook-retries job until they succeed or hit MAX_ATTEMPTS.
  */
 import crypto from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 export type WebhookEvent = "course.completed" | "certificate.issued";
+
+const MAX_ATTEMPTS = 5;
 
 /** Generates a webhook signing secret. */
 export function newWebhookSecret(): string {
@@ -22,10 +28,55 @@ export async function listWebhooks(orgId: string) {
     .orderBy(schema.webhooks.createdAt);
 }
 
+/** POSTs one delivery (HMAC-signed) and records the outcome on its row. */
+async function attemptDelivery(args: {
+  deliveryId: string;
+  url: string;
+  secret: string;
+  event: string;
+  payload: unknown;
+}): Promise<void> {
+  const body = JSON.stringify({
+    type: args.event,
+    payload: args.payload,
+    timestamp: new Date().toISOString(),
+  });
+  const signature = crypto
+    .createHmac("sha256", args.secret)
+    .update(body)
+    .digest("hex");
+
+  let succeeded = false;
+  try {
+    const res = await fetch(args.url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-karmalms-event": args.event,
+        "x-karmalms-signature": `sha256=${signature}`,
+      },
+      body,
+      signal: AbortSignal.timeout(5000),
+    });
+    succeeded = res.ok;
+  } catch {
+    succeeded = false;
+  }
+
+  await db
+    .update(schema.webhookDeliveries)
+    .set({
+      succeeded,
+      attempts: sql`${schema.webhookDeliveries.attempts} + 1`,
+      lastAttemptAt: new Date(),
+    })
+    .where(eq(schema.webhookDeliveries.id, args.deliveryId));
+}
+
 /**
  * Delivers an event to every active webhook for an org. Fire-and-forget:
  * callers should `void` this so a slow endpoint never blocks a user action.
- * Each delivery is HMAC-SHA256 signed with the webhook's secret.
+ * Each delivery is logged; failures are retried by the cron job.
  */
 export async function dispatchEvent(
   orgId: string,
@@ -38,34 +89,53 @@ export async function dispatchEvent(
     .where(
       and(eq(schema.webhooks.orgId, orgId), eq(schema.webhooks.active, true)),
     );
-  if (hooks.length === 0) return;
 
-  const body = JSON.stringify({
-    type,
-    payload,
-    timestamp: new Date().toISOString(),
-  });
+  for (const hook of hooks) {
+    const [delivery] = await db
+      .insert(schema.webhookDeliveries)
+      .values({ webhookId: hook.id, event: type, payload })
+      .returning({ id: schema.webhookDeliveries.id });
 
-  await Promise.allSettled(
-    hooks.map(async (hook) => {
-      const signature = crypto
-        .createHmac("sha256", hook.secret)
-        .update(body)
-        .digest("hex");
-      try {
-        await fetch(hook.url, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "x-karmalms-event": type,
-            "x-karmalms-signature": `sha256=${signature}`,
-          },
-          body,
-          signal: AbortSignal.timeout(5000),
-        });
-      } catch (err) {
-        console.error(`[webhook] delivery to ${hook.url} failed:`, err);
-      }
-    }),
-  );
+    await attemptDelivery({
+      deliveryId: delivery.id,
+      url: hook.url,
+      secret: hook.secret,
+      event: type,
+      payload,
+    });
+  }
+}
+
+/** Re-attempts failed deliveries that are still under the attempt cap. */
+export async function retryFailedDeliveries(): Promise<number> {
+  const due = await db
+    .select({
+      id: schema.webhookDeliveries.id,
+      event: schema.webhookDeliveries.event,
+      payload: schema.webhookDeliveries.payload,
+      url: schema.webhooks.url,
+      secret: schema.webhooks.secret,
+    })
+    .from(schema.webhookDeliveries)
+    .innerJoin(
+      schema.webhooks,
+      eq(schema.webhookDeliveries.webhookId, schema.webhooks.id),
+    )
+    .where(
+      and(
+        eq(schema.webhookDeliveries.succeeded, false),
+        lt(schema.webhookDeliveries.attempts, MAX_ATTEMPTS),
+      ),
+    );
+
+  for (const d of due) {
+    await attemptDelivery({
+      deliveryId: d.id,
+      url: d.url,
+      secret: d.secret,
+      event: d.event,
+      payload: d.payload,
+    });
+  }
+  return due.length;
 }
