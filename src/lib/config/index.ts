@@ -66,6 +66,16 @@ export const config = {
       issuer: env("JWT_ISSUER"),
       audience: env("JWT_AUDIENCE"),
     },
+    saml: {
+      entryPoint: env("SAML_ENTRY_POINT"),
+      issuer: env("SAML_ISSUER", "karmalms"),
+      idpCert: env("SAML_IDP_CERT"),
+      orgSlug: env("SAML_ORG_SLUG", "default"),
+      adminEmails: env("SAML_ADMIN_EMAILS")
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
+    },
   },
 
   storage: {

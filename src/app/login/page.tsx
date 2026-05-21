@@ -46,9 +46,9 @@ export default async function LoginPage({
           <CardDescription>
             {config.auth.mode === "dev"
               ? "Development mode — choose a demo account."
-              : config.auth.mode === "oidc"
-                ? "Continue with your organization's identity provider."
-                : "Sign in through your company portal."}
+              : config.auth.mode === "trusted-jwt"
+                ? "Sign in through your company portal."
+                : "Continue with your organization's identity provider."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,6 +58,14 @@ export default async function LoginPage({
             <Button asChild className="w-full">
               <a
                 href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
+              >
+                Sign in with SSO
+              </a>
+            </Button>
+          ) : config.auth.mode === "saml" ? (
+            <Button asChild className="w-full">
+              <a
+                href={`/api/auth/saml/login?returnTo=${encodeURIComponent(returnTo)}`}
               >
                 Sign in with SSO
               </a>

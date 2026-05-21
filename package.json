@@ -21,6 +21,7 @@
     "@aws-sdk/client-bedrock-runtime": "^3.654.0",
     "@aws-sdk/client-s3": "^3.654.0",
     "@aws-sdk/s3-request-presigner": "^3.654.0",
+    "@node-saml/node-saml": "^5.1.0",
     "@radix-ui/react-slot": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
