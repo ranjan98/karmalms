@@ -17,6 +17,18 @@ export function CreateTokenForm() {
           <Label htmlFor="name">New token</Label>
           <Input id="name" name="name" placeholder="e.g. HRIS sync" required />
         </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="scope">Access</Label>
+          <select
+            id="scope"
+            name="scope"
+            defaultValue="readwrite"
+            className="border-input h-9 rounded-md border bg-transparent px-2 text-sm shadow-xs outline-none"
+          >
+            <option value="readwrite">Read &amp; write</option>
+            <option value="read">Read only</option>
+          </select>
+        </div>
         <Button type="submit" disabled={pending}>
           Create token
         </Button>

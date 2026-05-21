@@ -23,6 +23,7 @@ export async function listApiTokens(orgId: string) {
     .select({
       id: schema.apiTokens.id,
       name: schema.apiTokens.name,
+      scope: schema.apiTokens.scope,
       lastUsedAt: schema.apiTokens.lastUsedAt,
       createdAt: schema.apiTokens.createdAt,
     })
@@ -37,7 +38,7 @@ export async function listApiTokens(orgId: string) {
  */
 export async function authenticateApiToken(
   req: Request,
-): Promise<{ orgId: string } | null> {
+): Promise<{ orgId: string; scope: string } | null> {
   const header = req.headers.get("authorization");
   if (!header?.startsWith("Bearer ")) return null;
 
@@ -45,7 +46,11 @@ export async function authenticateApiToken(
   if (!token.startsWith(TOKEN_PREFIX)) return null;
 
   const [row] = await db
-    .select({ id: schema.apiTokens.id, orgId: schema.apiTokens.orgId })
+    .select({
+      id: schema.apiTokens.id,
+      orgId: schema.apiTokens.orgId,
+      scope: schema.apiTokens.scope,
+    })
     .from(schema.apiTokens)
     .where(eq(schema.apiTokens.tokenHash, hashToken(token)))
     .limit(1);
@@ -56,5 +61,10 @@ export async function authenticateApiToken(
     .set({ lastUsedAt: new Date() })
     .where(eq(schema.apiTokens.id, row.id));
 
-  return { orgId: row.orgId };
+  return { orgId: row.orgId, scope: row.scope };
+}
+
+/** True when a token is allowed to perform writes. */
+export function canWrite(auth: { scope: string }): boolean {
+  return auth.scope === "readwrite";
 }

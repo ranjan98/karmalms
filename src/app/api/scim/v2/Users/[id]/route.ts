@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { authenticateApiToken } from "@/lib/api-tokens";
+import { authenticateApiToken, canWrite } from "@/lib/api-tokens";
 import { isUuid } from "@/lib/courses";
 import {
   scimJson,
@@ -43,6 +43,7 @@ export async function GET(req: Request, { params }: Ctx) {
 export async function PUT(req: Request, { params }: Ctx) {
   const auth = await authenticateApiToken(req);
   if (!auth) return scimError(401, "Unauthorized");
+  if (!canWrite(auth)) return scimError(403, "This token is read-only");
 
   const user = await findUser((await params).id, auth.orgId);
   if (!user) return scimError(404, "User not found");
@@ -67,6 +68,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 export async function PATCH(req: Request, { params }: Ctx) {
   const auth = await authenticateApiToken(req);
   if (!auth) return scimError(401, "Unauthorized");
+  if (!canWrite(auth)) return scimError(403, "This token is read-only");
 
   const user = await findUser((await params).id, auth.orgId);
   if (!user) return scimError(404, "User not found");
@@ -92,6 +94,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 export async function DELETE(req: Request, { params }: Ctx) {
   const auth = await authenticateApiToken(req);
   if (!auth) return scimError(401, "Unauthorized");
+  if (!canWrite(auth)) return scimError(403, "This token is read-only");
 
   const user = await findUser((await params).id, auth.orgId);
   if (!user) return scimError(404, "User not found");

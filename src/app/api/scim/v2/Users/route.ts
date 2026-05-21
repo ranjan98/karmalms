@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { authenticateApiToken } from "@/lib/api-tokens";
+import { authenticateApiToken, canWrite } from "@/lib/api-tokens";
 import {
   scimJson,
   scimError,
@@ -38,6 +38,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const auth = await authenticateApiToken(req);
   if (!auth) return scimError(401, "Unauthorized");
+  if (!canWrite(auth)) return scimError(403, "This token is read-only");
 
   let body: unknown;
   try {

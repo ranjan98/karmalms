@@ -22,11 +22,12 @@ export async function createApiToken(
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Give the token a name." };
+  const scope = formData.get("scope") === "read" ? "read" : "readwrite";
 
   const { token, hash } = generateApiToken();
   await db
     .insert(schema.apiTokens)
-    .values({ orgId: user.orgId, name, tokenHash: hash });
+    .values({ orgId: user.orgId, name, tokenHash: hash, scope });
 
   revalidatePath("/admin/api-tokens");
   return { token };

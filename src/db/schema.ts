@@ -222,6 +222,8 @@ export const apiTokens = pgTable("api_tokens", {
     .references(() => orgs.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   tokenHash: text("token_hash").notNull().unique(),
+  // 'read' or 'readwrite' — gates the write endpoints.
+  scope: text("scope").notNull().default("readwrite"),
   lastUsedAt: timestamp("last_used_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

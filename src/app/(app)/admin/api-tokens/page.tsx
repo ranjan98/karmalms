@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { listApiTokens } from "@/lib/api-tokens";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CreateTokenForm } from "./create-token-form";
 import { revokeApiToken } from "./actions";
@@ -44,7 +45,12 @@ export default async function ApiTokensPage() {
             <CardContent>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-medium">{t.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{t.name}</p>
+                    <Badge variant="secondary">
+                      {t.scope === "read" ? "Read-only" : "Read & write"}
+                    </Badge>
+                  </div>
                   <p className="text-muted-foreground text-xs">
                     Created {t.createdAt.toLocaleDateString()} ·{" "}
                     {t.lastUsedAt
