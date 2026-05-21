@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session-token";
+import { rateLimit } from "@/lib/rate-limit";
+
+/** Data-API surfaces that are rate-limited per client. */
+const RATE_LIMITED = ["/api/v1", "/api/scim", "/api/tutor"];
 
 /** Paths reachable without a session. */
 const PUBLIC_PREFIXES = [
@@ -24,6 +28,18 @@ function isPublic(pathname: string): boolean {
  */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Rate-limit the data API: 120 requests/minute per client IP.
+  if (
+    RATE_LIMITED.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
+    if (!rateLimit(`api:${ip}`, 120, 60_000)) {
+      return new NextResponse("Too Many Requests", { status: 429 });
+    }
+  }
+
   if (isPublic(pathname)) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;
