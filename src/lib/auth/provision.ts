@@ -57,11 +57,14 @@ export async function provisionUser(authUser: AuthUser): Promise<SessionUser> {
   }
 
   if (existing) {
-    // Refresh the profile; keep role and externalId as they are.
-    await db
-      .update(schema.users)
-      .set({ name: authUser.name })
-      .where(eq(schema.users.id, existing.id));
+    // Refresh the name when the IdP supplied one; keep role and externalId.
+    // Skipping the update when there's no name avoids an empty `set({})`.
+    if (authUser.name && authUser.name !== existing.name) {
+      await db
+        .update(schema.users)
+        .set({ name: authUser.name })
+        .where(eq(schema.users.id, existing.id));
+    }
     return {
       id: existing.id,
       email: existing.email,

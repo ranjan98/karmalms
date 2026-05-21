@@ -6,4 +6,5 @@ import * as schema from "./schema";
 const pool = new Pool({ connectionString: config.databaseUrl });
 
 export const db = drizzle(pool, { schema });
-export { schema };
+// `pool` is exported so the integration test suite can close it cleanly.
+export { schema, pool };
