@@ -53,6 +53,8 @@ export const users = pgTable(
     department: text("department"),
     // Cleared by a directory sync when someone leaves — blocks sign-in.
     active: boolean("active").notNull().default(true),
+    // Bumped to invalidate every existing session for this user.
+    sessionEpoch: integer("session_epoch").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({

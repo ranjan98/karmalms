@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
 import { isUuid } from "@/lib/courses";
@@ -28,6 +28,33 @@ export async function changeUserRole(formData: FormData): Promise<void> {
   await db
     .update(schema.users)
     .set({ role })
+    .where(
+      and(eq(schema.users.id, userId), eq(schema.users.orgId, actor.orgId)),
+    );
+
+  revalidatePath("/people");
+}
+
+/**
+ * Revokes every active session for a user by bumping their sessionEpoch — the
+ * `(app)` layout rejects sessions whose epoch no longer matches. Admin-only,
+ * org-scoped. You can't revoke your own session here.
+ */
+export async function forceSignOut(formData: FormData): Promise<void> {
+  const actor = await requireUser();
+  if (actor.role !== "admin") {
+    throw new Error("Only admins can force sign-out.");
+  }
+
+  const userId = String(formData.get("userId") ?? "");
+  if (!isUuid(userId)) throw new Error("User not found.");
+  if (userId === actor.id) {
+    throw new Error("You can't force sign-out your own session here.");
+  }
+
+  await db
+    .update(schema.users)
+    .set({ sessionEpoch: sql`${schema.users.sessionEpoch} + 1` })
     .where(
       and(eq(schema.users.id, userId), eq(schema.users.orgId, actor.orgId)),
     );

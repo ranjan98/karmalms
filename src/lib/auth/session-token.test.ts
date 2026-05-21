@@ -12,6 +12,7 @@ const user: SessionUser = {
   role: "admin",
   orgId: "org-1",
   orgSlug: "acme",
+  sessionEpoch: 0,
 };
 
 describe("session token", () => {

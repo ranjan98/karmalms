@@ -69,6 +69,7 @@ export async function provisionUser(authUser: AuthUser): Promise<SessionUser> {
       role: existing.role,
       orgId: org.id,
       orgSlug: org.slug,
+      sessionEpoch: existing.sessionEpoch,
     };
   }
 
@@ -90,5 +91,6 @@ export async function provisionUser(authUser: AuthUser): Promise<SessionUser> {
     role: created.role,
     orgId: org.id,
     orgSlug: org.slug,
+    sessionEpoch: created.sessionEpoch,
   };
 }

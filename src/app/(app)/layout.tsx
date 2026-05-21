@@ -17,29 +17,32 @@ export default async function AppLayout({
 }) {
   const user = await requireUser();
 
-  // Block users a directory sync has deactivated (or that were removed).
+  // Block users a directory sync has deactivated (or that were removed), and
+  // sessions an admin has revoked by bumping the user's sessionEpoch.
   const [account] = await db
-    .select({ active: schema.users.active })
+    .select({
+      active: schema.users.active,
+      sessionEpoch: schema.users.sessionEpoch,
+    })
     .from(schema.users)
     .where(eq(schema.users.id, user.id))
     .limit(1);
 
   if (!account || !account.active) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="text-xl font-semibold tracking-tight">
-          Account deactivated
-        </h1>
-        <p className="text-muted-foreground max-w-sm text-sm">
-          Your account is no longer active. Contact your administrator if you
-          believe this is a mistake.
-        </p>
-        <form action="/api/auth/logout" method="post">
-          <Button type="submit" variant="outline">
-            Sign out
-          </Button>
-        </form>
-      </main>
+      <SignedOutScreen
+        title="Account deactivated"
+        message="Your account is no longer active. Contact your administrator if you believe this is a mistake."
+      />
+    );
+  }
+
+  if (account.sessionEpoch !== user.sessionEpoch) {
+    return (
+      <SignedOutScreen
+        title="Session ended"
+        message="This session was signed out. Sign in again to continue."
+      />
     );
   }
 
@@ -58,5 +61,26 @@ export default async function AppLayout({
     >
       {children}
     </AppShell>
+  );
+}
+
+/** Full-screen message with a sign-out button — a layout can't clear cookies. */
+function SignedOutScreen({
+  title,
+  message,
+}: {
+  title: string;
+  message: string;
+}) {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+      <p className="text-muted-foreground max-w-sm text-sm">{message}</p>
+      <form action="/api/auth/logout" method="post">
+        <Button type="submit" variant="outline">
+          Sign out
+        </Button>
+      </form>
+    </main>
   );
 }

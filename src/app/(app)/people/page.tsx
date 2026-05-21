@@ -5,9 +5,12 @@ import {
   listReports,
   enrollmentCountsByUser,
 } from "@/lib/enrollments";
+import { LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmButton } from "@/components/confirm-button";
 import { RoleSelect } from "./role-select";
 import { ManagerSelect } from "./manager-select";
+import { forceSignOut } from "./actions";
 
 type OrgUser = Awaited<ReturnType<typeof listOrgUsers>>[number];
 
@@ -59,6 +62,7 @@ async function AdminPeople({
               <th className="px-4 py-2.5 font-medium">Role</th>
               <th className="px-4 py-2.5 font-medium">Manager</th>
               <th className="px-4 py-2.5 font-medium">Courses</th>
+              <th className="px-4 py-2.5 font-medium" />
             </tr>
           </thead>
           <tbody>
@@ -89,6 +93,22 @@ async function AdminPeople({
                 </td>
                 <td className="text-muted-foreground px-4 py-2.5">
                   {r.completed} of {r.assigned}
+                </td>
+                <td className="px-4 py-2.5 text-right">
+                  {r.id !== currentUserId && (
+                    <form action={forceSignOut}>
+                      <input type="hidden" name="userId" value={r.id} />
+                      <ConfirmButton
+                        type="submit"
+                        variant="ghost"
+                        size="sm"
+                        confirmText={`Force sign-out ${r.name ?? r.email}? They'll need to sign in again.`}
+                        title="Force sign-out"
+                      >
+                        <LogOut className="size-4" />
+                      </ConfirmButton>
+                    </form>
+                  )}
                 </td>
               </tr>
             ))}

@@ -22,6 +22,8 @@ export interface SessionUser {
   role: Role;
   orgId: string;
   orgSlug: string;
+  // Session-revocation epoch — checked against the user row on each request.
+  sessionEpoch: number;
 }
 
 export async function signSessionToken(user: SessionUser): Promise<string> {
@@ -44,6 +46,7 @@ export async function verifySessionToken(
       role: payload.role as Role,
       orgId: String(payload.orgId),
       orgSlug: String(payload.orgSlug),
+      sessionEpoch: Number(payload.sessionEpoch ?? 0),
     };
   } catch {
     return null;

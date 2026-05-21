@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       email: schema.users.email,
       name: schema.users.name,
       role: schema.users.role,
+      sessionEpoch: schema.users.sessionEpoch,
       orgId: schema.orgs.id,
       orgSlug: schema.orgs.slug,
     })
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
     role: row.role,
     orgId: row.orgId,
     orgSlug: row.orgSlug,
+    sessionEpoch: row.sessionEpoch,
   });
 
   return NextResponse.redirect(new URL(returnTo, config.appUrl), {
