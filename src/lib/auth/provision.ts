@@ -2,11 +2,14 @@
  * Just-in-time (JIT) provisioning.
  *
  * When an identity provider authenticates someone, KarmaLMS turns that
- * identity into local rows — creating the org and user on first sight. The
- * IdP stays the source of truth for identity; KarmaLMS only stores a
- * reference (`externalId`) plus role and profile.
+ * identity into local rows — creating the org and user on first sight.
+ *
+ * Existing users are matched by email within the org first, so a person who
+ * was already created another way (a directory sync, SCIM, the REST API) is
+ * updated rather than duplicated. Only first-ever users fall back to the
+ * external id, and `role` is never overwritten on repeat logins.
  */
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { AuthUser } from "./types";
 import type { SessionUser } from "./session-token";
@@ -26,9 +29,50 @@ export async function provisionUser(authUser: AuthUser): Promise<SessionUser> {
       .returning();
   }
 
-  // Upsert the user on (orgId, externalId). On repeat logins we refresh the
-  // profile but never overwrite `role` — that may have been changed in-app.
-  const [user] = await db
+  // Match an existing user — by email if we have one, else by external id.
+  let existing: typeof schema.users.$inferSelect | undefined;
+  if (authUser.email) {
+    [existing] = await db
+      .select()
+      .from(schema.users)
+      .where(
+        and(
+          eq(schema.users.orgId, org.id),
+          eq(schema.users.email, authUser.email),
+        ),
+      )
+      .limit(1);
+  }
+  if (!existing) {
+    [existing] = await db
+      .select()
+      .from(schema.users)
+      .where(
+        and(
+          eq(schema.users.orgId, org.id),
+          eq(schema.users.externalId, authUser.externalId),
+        ),
+      )
+      .limit(1);
+  }
+
+  if (existing) {
+    // Refresh the profile; keep role and externalId as they are.
+    await db
+      .update(schema.users)
+      .set({ name: authUser.name })
+      .where(eq(schema.users.id, existing.id));
+    return {
+      id: existing.id,
+      email: existing.email,
+      name: authUser.name ?? existing.name ?? undefined,
+      role: existing.role,
+      orgId: org.id,
+      orgSlug: org.slug,
+    };
+  }
+
+  const [created] = await db
     .insert(schema.users)
     .values({
       orgId: org.id,
@@ -37,17 +81,13 @@ export async function provisionUser(authUser: AuthUser): Promise<SessionUser> {
       name: authUser.name,
       role: authUser.role,
     })
-    .onConflictDoUpdate({
-      target: [schema.users.orgId, schema.users.externalId],
-      set: { email: authUser.email, name: authUser.name },
-    })
     .returning();
 
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name ?? undefined,
-    role: user.role,
+    id: created.id,
+    email: created.email,
+    name: created.name ?? undefined,
+    role: created.role,
     orgId: org.id,
     orgSlug: org.slug,
   };
