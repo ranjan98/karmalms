@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   BookOpen,
   Award,
+  BarChart3,
   Users,
   Settings,
   Menu,
@@ -49,6 +50,12 @@ const NAV_ITEMS: {
     label: "Certifications",
     icon: Award,
     roles: ["admin", "manager", "learner"],
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    roles: ["admin", "manager"],
   },
   { href: "/people", label: "People", icon: Users, roles: ["admin", "manager"] },
   {
