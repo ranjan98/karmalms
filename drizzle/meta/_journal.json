@@ -71,6 +71,13 @@
       "when": 1779339349974,
       "tag": "0009_rare_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779339965726,
+      "tag": "0010_giant_warstar",
+      "breakpoints": true
     }
   ]
 }

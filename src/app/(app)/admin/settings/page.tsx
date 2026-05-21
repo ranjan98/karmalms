@@ -123,12 +123,16 @@ export default async function SettingsPage({
       <div className="mt-10 border-t pt-6">
         <h2 className="text-base font-semibold">Integrations</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          Send <code>course.completed</code> and{" "}
-          <code>certificate.issued</code> events to external systems.
+          Connect external systems with event webhooks and the REST API.
         </p>
-        <Button asChild variant="outline" className="mt-3">
-          <Link href="/admin/webhooks">Manage webhooks</Link>
-        </Button>
+        <div className="mt-3 flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/admin/webhooks">Webhooks</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/admin/api-tokens">API tokens</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ const PUBLIC_PREFIXES = [
   "/api/health",
   "/api/assets",
   "/api/cron",
+  "/api/v1",
+  "/api/scim",
 ];
 
 function isPublic(pathname: string): boolean {
