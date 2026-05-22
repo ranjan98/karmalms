@@ -8,7 +8,7 @@
  * /api/cron/webhook-retries job until they succeed or hit MAX_ATTEMPTS.
  */
 import crypto from "node:crypto";
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 export type WebhookEvent = "course.completed" | "certificate.issued";
@@ -26,6 +26,39 @@ export async function listWebhooks(orgId: string) {
     .from(schema.webhooks)
     .where(eq(schema.webhooks.orgId, orgId))
     .orderBy(schema.webhooks.createdAt);
+}
+
+/**
+ * Recent webhook deliveries for an org — the delivery log, newest first.
+ * Each row is joined to its webhook so the UI can show the target URL.
+ */
+export async function listRecentDeliveries(orgId: string, limit = 25) {
+  return db
+    .select({
+      id: schema.webhookDeliveries.id,
+      event: schema.webhookDeliveries.event,
+      succeeded: schema.webhookDeliveries.succeeded,
+      attempts: schema.webhookDeliveries.attempts,
+      lastAttemptAt: schema.webhookDeliveries.lastAttemptAt,
+      createdAt: schema.webhookDeliveries.createdAt,
+      url: schema.webhooks.url,
+    })
+    .from(schema.webhookDeliveries)
+    .innerJoin(
+      schema.webhooks,
+      eq(schema.webhookDeliveries.webhookId, schema.webhooks.id),
+    )
+    .where(eq(schema.webhooks.orgId, orgId))
+    .orderBy(desc(schema.webhookDeliveries.createdAt))
+    .limit(limit);
+}
+
+/** Whether a failed delivery has exhausted its retry budget. */
+export function isDeliveryGivenUp(d: {
+  succeeded: boolean;
+  attempts: number;
+}): boolean {
+  return !d.succeeded && d.attempts >= MAX_ATTEMPTS;
 }
 
 /** POSTs one delivery (HMAC-signed) and records the outcome on its row. */

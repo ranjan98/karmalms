@@ -2,10 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
-import { listWebhooks } from "@/lib/webhooks";
+import {
+  listWebhooks,
+  listRecentDeliveries,
+  isDeliveryGivenUp,
+} from "@/lib/webhooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/confirm-button";
 import { createWebhook, deleteWebhook } from "./actions";
@@ -15,6 +20,7 @@ export default async function WebhooksPage() {
   if (user.role !== "admin") redirect("/dashboard");
 
   const hooks = await listWebhooks(user.orgId);
+  const deliveries = await listRecentDeliveries(user.orgId);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -82,6 +88,62 @@ export default async function WebhooksPage() {
           </Card>
         ))}
       </div>
+
+      <h2 className="mt-10 text-lg font-semibold tracking-tight">
+        Recent deliveries
+      </h2>
+      <p className="text-muted-foreground mt-1 text-sm">
+        The last {deliveries.length === 0 ? "few" : deliveries.length}{" "}
+        delivery attempts. Failed deliveries are retried automatically until
+        they succeed or give up after 5 attempts.
+      </p>
+
+      {deliveries.length === 0 ? (
+        <p className="text-muted-foreground mt-4 text-sm">
+          No deliveries yet — they appear here once an event fires.
+        </p>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-md border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-muted-foreground bg-muted/50 text-left">
+                <th className="px-4 py-2.5 font-medium">Event</th>
+                <th className="px-4 py-2.5 font-medium">Endpoint</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deliveries.map((d) => (
+                <tr key={d.id} className="border-t">
+                  <td className="px-4 py-2.5">
+                    <code className="text-xs">{d.event}</code>
+                  </td>
+                  <td className="text-muted-foreground max-w-[14rem] truncate px-4 py-2.5">
+                    {d.url}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {d.succeeded ? (
+                      <Badge>Delivered</Badge>
+                    ) : isDeliveryGivenUp(d) ? (
+                      <Badge variant="destructive">
+                        Failed · {d.attempts} tries
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">
+                        Retrying · attempt {d.attempts}
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="text-muted-foreground px-4 py-2.5">
+                    {(d.lastAttemptAt ?? d.createdAt).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
