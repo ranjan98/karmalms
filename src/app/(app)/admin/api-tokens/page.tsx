@@ -28,8 +28,9 @@ export default async function ApiTokensPage() {
       </h1>
       <p className="text-muted-foreground mt-1 text-sm">
         Bearer credentials for the REST API at <code>/api/v1</code>. Send{" "}
-        <code>Authorization: Bearer &lt;token&gt;</code>. Each token has full
-        access to your organization&apos;s data.
+        <code>Authorization: Bearer &lt;token&gt;</code>. Each token is scoped
+        to your organization and grants either read-only or read &amp; write
+        access — pick the narrowest scope an integration needs.
       </p>
 
       <div className="mt-6">
