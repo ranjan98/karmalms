@@ -31,7 +31,7 @@ KarmaLMS is built for the **company** case from line one:
 
 ## Bring your own everything
 
-KarmaLMS owns as little as possible. Three pluggable adapters mean it slots into
+KarmaLMS owns as little as possible. Pluggable adapters mean it slots into
 infrastructure a company already has — configured by environment variables, no fork:
 
 | Adapter | What you plug in | Modes |
@@ -39,6 +39,7 @@ infrastructure a company already has — configured by environment variables, no
 | **Auth** | Your identity provider — KarmaLMS never stores passwords | `oidc` (Cognito/Okta/Azure AD/Auth0), `trusted-jwt` (append to your existing portal session), `saml` |
 | **Storage** | Your object storage | S3-compatible: AWS S3, MinIO, Cloudflare R2 |
 | **LLM** | Your AI provider — or none | `bedrock` (runs in your own AWS — data stays in your VPC), `openai`, `none` |
+| **Directory** | Your HRIS, for employee sync — or none | `bamboohr`, `none` |
 
 The whole app depends only on these interfaces. Swapping a provider is a config
 change, not a code change. See [`src/lib/`](src/lib/).
@@ -105,6 +106,7 @@ Next.js (App Router, TypeScript)  ──  one deployable
         ├── Auth adapter      → your IdP        (src/lib/auth)
         ├── Storage adapter   → your S3         (src/lib/storage)
         ├── LLM adapter       → your AI / none  (src/lib/llm)
+        ├── Directory adapter → your HRIS       (src/lib/directory)
         └── Postgres + pgvector (Drizzle ORM)   (src/db)
 ```
 
@@ -117,16 +119,17 @@ Next.js (App Router, TypeScript)  ──  one deployable
 - **Branding** — logo, colors, app name via env vars.
 - **Theming** — the brand color is a CSS variable; override one file.
 - **Login page** — fully replaceable component (and in `trusted-jwt` mode there is no login page at all).
-- **Webhooks & API** _(roadmap)_ — integrate with your HRIS/Slack without touching core.
+- **Webhooks & REST API** — integrate with your HRIS/Slack without touching core.
 
 ## Roadmap
 
 | Version | Focus | Status |
 |---|---|---|
 | **v0.1** | Course authoring → publish → assign → learners complete lessons → quizzes gate completion → manager reporting. OIDC + trusted-JWT SSO, S3 storage, light/dark theming, in-app company branding, `docker compose up`. | ✅ Built |
-| **v0.2** | **Certifications with expiry + lapse reminders** (the headline feature). **AI course authoring** — paste a doc → drafted lessons + quiz. | Planned |
-| **v0.3** | AI tutor (RAG grounded in course content), webhooks, REST API tokens, SAML adapter. | Planned |
-| **Later** | SCIM provisioning, analytics, plugin hook system, theming marketplace. | Planned |
+| **v0.2** | **Certifications with expiry + lapse reminders** (the headline feature). **AI course authoring** — paste a doc → drafted lessons + quiz. | ✅ Built |
+| **v0.3** | AI tutor (RAG grounded in course content), webhooks, REST API tokens, SAML adapter. | ✅ Built |
+| **v0.4** | SCIM provisioning, org analytics, rate limiting, scoped API tokens, session revocation. | ✅ Built |
+| **Later** | Plugin hook system, theming marketplace. | Planned |
 
 See [open issues](https://github.com/ranjan98/karmalms/issues) and
 [`good first issue`](https://github.com/ranjan98/karmalms/labels/good%20first%20issue).

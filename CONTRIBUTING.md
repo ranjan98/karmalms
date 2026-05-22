@@ -24,7 +24,16 @@ npm run dev
 ```bash
 npm run typecheck
 npm run lint
+npm test                 # unit tests — pure logic, no database
+
+# DB-layer integration tests, run against a throwaway Postgres:
+createdb karmalms_test
+DATABASE_URL=postgres://localhost:5432/karmalms_test npm run test:integration
 ```
+
+CI runs all four on every push. The integration suite (`*.itest.ts`)
+exercises the data layer against a real Postgres; the unit suite
+(`*.test.ts`) stays database-free.
 
 ## Project layout
 
@@ -35,7 +44,9 @@ npm run lint
 | `src/lib/auth` | Auth adapter interface + adapters |
 | `src/lib/storage` | Storage provider interface + adapters |
 | `src/lib/llm` | LLM provider interface + adapters |
+| `src/lib/directory` | HRIS directory-sync interface + adapters |
 | `src/lib/config` | Environment-driven config |
+| `src/test` | Integration-test setup + shared helpers |
 | `docs/` | GitHub Pages landing site |
 
 ## Guidelines
@@ -49,7 +60,8 @@ npm run lint
 ## Good first issues
 
 Look for the [`good first issue`](https://github.com/ranjan98/karmalms/labels/good%20first%20issue)
-label. New adapters (SAML auth, OpenAI LLM, R2 storage) are great entry points.
+label. New provider adapters (storage, LLM, directory sync) and UI polish
+are great entry points.
 
 ## Code of Conduct
 
