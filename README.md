@@ -129,7 +129,6 @@ Next.js (App Router, TypeScript)  ──  one deployable
 | **v0.2** | **Certifications with expiry + lapse reminders** (the headline feature). **AI course authoring** — paste a doc → drafted lessons + quiz. | ✅ Built |
 | **v0.3** | AI tutor (RAG grounded in course content), webhooks, REST API tokens, SAML adapter. | ✅ Built |
 | **v0.4** | SCIM provisioning, org analytics, rate limiting, scoped API tokens, session revocation. | ✅ Built |
-| **Later** | Plugin hook system, theming marketplace. | Planned |
 
 See [open issues](https://github.com/ranjan98/karmalms/issues) and
 [`good first issue`](https://github.com/ranjan98/karmalms/labels/good%20first%20issue).
