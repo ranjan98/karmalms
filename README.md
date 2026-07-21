@@ -11,7 +11,7 @@
 </div>
 
 <div align="center">
-  <img src="docs/assets/hero-dashboard.svg" alt="KarmaLMS dashboard — onboarding program with course progress and compliance tracking" width="820" />
+  <img src="docs/assets/demo.gif" alt="KarmaLMS demo — sign in, dashboard, courses, certifications, analytics, and people in 10 seconds" width="820" />
 </div>
 
 ---
@@ -28,6 +28,16 @@ KarmaLMS is built for the **company** case from line one:
 - **Compliance tracking** — certifications with expiry dates and automatic lapse reminders.
 - **Manager dashboards** — see who on your team is overdue, at a glance.
 - **Runs on your infrastructure** — your AWS account, your S3, your identity provider.
+
+## Screenshots
+
+| Admin dashboard | Compliance analytics |
+|---|---|
+| ![Admin dashboard with completion overview](docs/assets/screenshot-dashboard.png) | ![Analytics — completion by department and certificate health](docs/assets/screenshot-analytics.png) |
+
+| Certification tracking | Course builder |
+|---|---|
+| ![Certifications with expiry status at a glance](docs/assets/screenshot-certs.png) | ![Course editor with lessons and certificate validity](docs/assets/screenshot-course.png) |
 
 ## Bring your own everything
 
