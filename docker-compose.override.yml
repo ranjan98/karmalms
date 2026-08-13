@@ -1,0 +1,5 @@
+# Local-only override (untracked): host 5432 is taken by a native postgres.
+services:
+  db:
+    ports: !override
+      - "55432:5432"
